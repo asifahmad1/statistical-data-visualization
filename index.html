@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistical Data Visualization — Charts, Graphs &amp; Statistical Analysis</title>
+<meta name="description" content="Visualise and analyse your data in the browser: charts and graphs of every kind — distributions, box plots, scatter, heatmaps, biplots — plus the full statistical toolkit (descriptives, t-tests, ANOVA, chi-square, correlation, regression, PCA, factor analysis).">
+<style>
+  :root{
+    --emerald:#103E32; --emerald-2:#0B4F3A; --lime:#DCF5B5; --lime-strong:#C9EC8F;
+    --paper:#F7F8F2; --ink:#17352B; --muted:#5A6E64; --line:#DCE5D8;
+    --danger:#B3261E; --danger-bg:#FDECEA; --ok:#146C43; --ok-bg:#E6F4EA;
+    --radius:14px; --shadow:0 10px 30px rgba(16,62,50,.12);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--paper); color:var(--ink); line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:20px 16px 40px}
+  header.hero{
+    background:linear-gradient(135deg,var(--emerald) 0%,var(--emerald-2) 100%);
+    color:#fff;border-radius:var(--radius);padding:28px 26px;box-shadow:var(--shadow);
+  }
+  header.hero h1{margin:0 0 6px;font-size:clamp(25px,4.2vw,37px);letter-spacing:.2px}
+  header.hero h1 .accent{color:var(--lime)}
+  header.hero p{margin:0;max-width:700px;color:#EAF3E4;font-size:clamp(14px,2.4vw,16px)}
+  .badge{
+    display:inline-block;background:var(--lime);color:var(--emerald);font-weight:700;
+    font-size:12px;padding:3px 10px;border-radius:999px;margin-bottom:12px;letter-spacing:.4px;
+  }
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-top:18px}
+  .card h2{margin:0 0 6px;font-size:17px;color:var(--emerald)}
+  .card h3{margin:16px 0 8px;font-size:14px;color:var(--emerald);text-transform:uppercase;letter-spacing:.6px}
+  .card .sub{font-size:13.5px;color:var(--muted);margin:0 0 8px}
+  .drop{
+    border:2px dashed #9DB8A6;border-radius:var(--radius);background:#FBFCF8;
+    padding:22px 16px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;
+  }
+  .drop:hover,.drop:focus-visible{border-color:var(--emerald-2);outline:none}
+  .drop.dragover{border-color:var(--emerald);background:var(--lime)}
+  .drop .big{font-size:16.5px;font-weight:700;color:var(--emerald)}
+  .drop .small{font-size:13px;color:var(--muted);margin-top:4px}
+  .drop input{display:none}
+  textarea.paste{
+    width:100%;min-height:110px;padding:10px;border-radius:10px;border:1.5px solid var(--line);
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;color:var(--ink);resize:vertical;
+  }
+  .msg{display:none;border-radius:10px;padding:10px 12px;font-size:14px;margin-top:12px;white-space:pre-line}
+  .msg.error{display:block;background:var(--danger-bg);color:var(--danger);border:1px solid #F3C2BE}
+  .msg.ok{display:block;background:var(--ok-bg);color:var(--ok);border:1px solid #BFE3CC}
+  .btn{
+    appearance:none;border:none;cursor:pointer;border-radius:10px;padding:11px 16px;
+    font-size:14.5px;font-weight:700;text-decoration:none;display:inline-block;text-align:center;
+  }
+  .btn.primary{background:var(--emerald);color:#fff}
+  .btn.primary:hover{background:var(--emerald-2)}
+  .btn.lime{background:var(--lime);color:var(--emerald)}
+  .btn.lime:hover{background:var(--lime-strong)}
+  .btn.ghost{background:#fff;color:var(--emerald);border:1.5px solid var(--emerald)}
+  .btn:disabled{background:#9DB8A6;color:#fff;cursor:not-allowed;border-color:#9DB8A6}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .tblwrap{overflow-x:auto;margin-top:10px;border:1px solid var(--line);border-radius:10px}
+  table.data{border-collapse:collapse;width:100%;font-size:13px;min-width:420px}
+  table.data th{background:var(--emerald);color:#fff;text-align:left;padding:7px 9px;white-space:nowrap}
+  table.data td{padding:6px 9px;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+  table.data tr:nth-child(even) td{background:#F7FAF3}
+  table.data td.num,table.data th.num{text-align:right}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chip{border:1.5px solid var(--line);background:#FBFCF8;border-radius:999px;padding:5px 12px;font-size:13px}
+  .chip b{color:var(--emerald)}
+  .chip .tag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;margin-left:6px}
+  .tag.num{background:var(--lime);color:var(--emerald)}
+  .tag.cat{background:#FFE1B3;color:#7A4B00}
+  .tabs{display:flex;flex-wrap:wrap;gap:8px}
+  .tabs button{
+    padding:9px 13px;border-radius:10px;border:1.5px solid var(--line);background:#fff;
+    font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;
+  }
+  .tabs button[aria-pressed="true"]{background:var(--emerald);border-color:var(--emerald);color:#fff}
+  .cfg{display:none;margin-top:14px}
+  .cfg.active{display:block}
+  .cfg .row{margin-top:10px}
+  .cfg label{display:block;font-size:13.5px;font-weight:600;margin-bottom:4px}
+  .cfg select,.cfg input[type=number]{
+    width:100%;max-width:420px;padding:9px;border-radius:10px;border:1.5px solid var(--line);
+    font-size:14px;background:#fff;color:var(--ink);
+  }
+  .checks{display:flex;flex-wrap:wrap;gap:8px}
+  .checks label{
+    display:flex;align-items:center;gap:7px;border:1.5px solid var(--line);border-radius:999px;
+    padding:6px 12px;font-size:13.5px;font-weight:600;cursor:pointer;background:#fff;margin:0;
+  }
+  .checks label:has(input:checked){background:var(--lime);border-color:var(--emerald)}
+  .checks input{accent-color:var(--emerald);width:15px;height:15px}
+  .result h3:first-child{margin-top:0}
+  .interp{
+    background:#F0F5E9;border-left:4px solid var(--emerald-2);border-radius:8px;
+    padding:11px 14px;font-size:14px;margin-top:12px;
+  }
+  .interp b{color:var(--emerald)}
+  .chartbox{margin-top:12px;text-align:center}
+  .chartbox canvas{max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .sig{color:var(--danger);font-weight:700}
+  .heatmap td{text-align:center}
+  .privacy{margin-top:16px;font-size:13px;color:var(--muted);text-align:center}
+  footer{margin-top:10px;text-align:center;font-size:13px;color:var(--muted)}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="badge">ASIF SAAS STUDIO</span>
+    <h1>Statistical Data <span class="accent">Visualization</span></h1>
+    <p>Upload your data and <strong>see</strong> it: distribution plots with density curves, box plots, scatter plots, line charts, pie charts, Q–Q plots, correlation heatmaps and PCA biplots — backed by the full statistical toolkit (descriptives, t-tests, ANOVA, chi-square, correlation, regression, multiple regression, PCA, factor analysis) with tables and plain-language interpretations.</p>
+  </header>
+
+  <!-- STEP 1: DATA -->
+  <section class="card" aria-label="Data input">
+    <h2>1 · Your data</h2>
+    <p class="sub">Upload a file (<strong>CSV, XLSX, DAT, TSV, TXT or JSON</strong>), paste data below, or try the built-in sample. For Excel, the <em>first worksheet</em> is read. Max file size 5 MB.</p>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload a data file">
+      <div class="big">📂 Drop a data file here, or tap to browse</div>
+      <div class="small">.csv · .xlsx · .dat · .tsv · .txt · .json — first row should be column names</div>
+      <input type="file" id="file" accept=".csv,.xlsx,.xls,.dat,.tsv,.txt,.json,text/csv,text/plain,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+    </div>
+    <div class="msg" id="dataMsg" role="alert"></div>
+    <h3>…or paste data</h3>
+    <textarea class="paste" id="paste" placeholder="Name,Group,Score&#10;Ayesha,Control,72&#10;Bilal,Treatment,85&#10;…"></textarea>
+    <div class="actions">
+      <button class="btn primary" id="loadPaste">Load pasted data</button>
+      <button class="btn ghost" id="loadSample">Load sample dataset</button>
+      <button class="btn ghost" id="clearData">Clear</button>
+    </div>
+    <div id="dataSummary" class="hidden">
+      <h3>Dataset</h3>
+      <div class="meta-line" id="dsMeta" style="font-size:13.5px;color:var(--muted)"></div>
+      <div class="chips" id="colChips"></div>
+      <div class="tblwrap"><table class="data" id="previewTable"></table></div>
+      <p class="sub" id="previewNote" style="margin-top:6px"></p>
+    </div>
+  </section>
+
+  <!-- STEP 2: ANALYSIS -->
+  <section class="card hidden" id="analysisCard" aria-label="Choose analysis">
+    <h2>2 · Choose an analysis</h2>
+    <div class="tabs" id="tabs" role="group" aria-label="Analysis type">
+      <button type="button" data-an="visualize" aria-pressed="true">📊 Visualize</button>
+      <button type="button" data-an="descriptive" aria-pressed="false">Descriptive</button>
+      <button type="button" data-an="ttest" aria-pressed="false">T-Tests</button>
+      <button type="button" data-an="anova" aria-pressed="false">ANOVA</button>
+      <button type="button" data-an="chisq" aria-pressed="false">Chi-Square</button>
+      <button type="button" data-an="corr" aria-pressed="false">Correlation</button>
+      <button type="button" data-an="regression" aria-pressed="false">Regression</button>
+      <button type="button" data-an="multireg" aria-pressed="false">Multiple Regression</button>
+      <button type="button" data-an="pca" aria-pressed="false">PCA</button>
+      <button type="button" data-an="factor" aria-pressed="false">Factor Analysis</button>
+    </div>
+    <div id="cfgs"></div>
+    <div class="msg" id="anMsg" role="alert"></div>
+    <div class="actions">
+      <button class="btn primary" id="run" style="flex:1 1 200px">▶ Run analysis</button>
+    </div>
+  </section>
+
+  <!-- STEP 3: RESULTS -->
+  <section class="card hidden" id="resultCard" aria-label="Results">
+    <h2>3 · Results</h2>
+    <div class="result" id="result"></div>
+    <div class="actions">
+      <button class="btn lime" id="dlReport">⬇ Download report (HTML)</button>
+    </div>
+  </section>
+
+  <p class="privacy">🔒 Private by design: your data never leaves your device — all statistics are computed locally, with no uploads, no accounts and no tracking.</p>
+  <footer>Statistical Data Visualization · v1.0 · Asif SaaS Studio</footer>
+</div>
+
+<script>
+"use strict";
+/* ================= PURE CORE (parsing, statistics, distributions — no DOM) ================= */
+/* PURE-CORE-START */
+var MISSING_TOKENS = {"":1, "na":1, "n/a":1, "null":1, "nan":1, "-":1, ".":1, "missing":1};
+
+/* ---------- Delimited-text parsing (CSV/TSV/TXT) ---------- */
+function sniffDelimiter(text){
+  var firstLine = text.split(/\r\n|\r|\n/)[0] || "";
+  var cands = [",", ";", "\t", "|"], best = ",", bestN = -1, inQ = false, counts = {",":0,";":0,"\t":0,"|":0};
+  for (var i = 0; i < firstLine.length; i++){
+    var ch = firstLine[i];
+    if (ch === '"') inQ = !inQ;
+    else if (!inQ && counts.hasOwnProperty(ch)) counts[ch]++;
+  }
+  cands.forEach(function(c){ if (counts[c] > bestN){ bestN = counts[c]; best = c; } });
+  return best;
+}
+function parseDelimited(text, delim){
+  var rows = [], row = [], field = "", inQ = false, i, ch;
+  text = String(text).replace(/^\uFEFF/, "");
+  function endField(){ row.push(field); field = ""; }
+  function endRow(){ endField(); rows.push(row); row = []; }
+  for (i = 0; i < text.length; i++){
+    ch = text[i];
+    if (inQ){
+      if (ch === '"'){ if (text[i + 1] === '"'){ field += '"'; i++; } else inQ = false; }
+      else field += ch;
+    } else if (ch === '"') inQ = true;
+    else if (ch === delim) endField();
+    else if (ch === "\n") endRow();
+    else if (ch === "\r"){ if (text[i + 1] === "\n") i++; endRow(); }
+    else field += ch;
+  }
+  if (field.length || row.length) endRow();
+  return rows.filter(function(r){ return !(r.length === 1 && r[0].trim() === ""); });
+}
+/* JSON: array of objects, or array of arrays (first row = headers) */
+function parseJsonData(text){
+  var data = JSON.parse(text);
+  if (!Array.isArray(data) || !data.length) throw new Error("JSON must be a non-empty array.");
+  if (Array.isArray(data[0])){
+    return data.map(function(r){ return r.map(function(v){ return v === null || v === undefined ? "" : String(v); }); });
+  }
+  if (typeof data[0] === "object"){
+    var keys = [];
+    data.forEach(function(o){ Object.keys(o).forEach(function(k){ if (keys.indexOf(k) < 0) keys.push(k); }); });
+    var out = [keys];
+    data.forEach(function(o){ out.push(keys.map(function(k){ var v = o[k]; return v === null || v === undefined ? "" : String(v); })); });
+    return out;
+  }
+  throw new Error("JSON must be an array of objects or an array of rows.");
+}
+/* Build the dataset from a rows grid (first row = header) */
+function buildDataset(grid){
+  if (!grid || grid.length < 2) return { error: "The data needs a header row and at least one data row." };
+  var headers = grid[0].map(function(h, i){ h = String(h).trim(); return h || ("Var" + (i + 1)); });
+  var seen = {};
+  headers = headers.map(function(h){ if (seen[h]){ seen[h]++; return h + "_" + seen[h]; } seen[h] = 1; return h; });
+  var ncol = headers.length, body = grid.slice(1);
+  var cols = headers.map(function(name, ci){
+    var raw = body.map(function(r){ return ci < r.length ? String(r[ci]).trim() : ""; });
+    var numeric = true, vals = [];
+    raw.forEach(function(v){
+      if (MISSING_TOKENS[v.toLowerCase()]){ vals.push(null); return; }
+      var numStr = v;
+      if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(v)) numStr = v.replace(/,/g, "");       // 1,000.5 thousands
+      else if (/^-?\d+,\d+$/.test(v)) numStr = v.replace(",", ".");                  // 1,5 decimal comma
+      var n = Number(numStr);
+      if (isFinite(n)) vals.push(n); else { numeric = false; vals.push(v); }
+    });
+    if (!numeric){
+      vals = raw.map(function(v){ return MISSING_TOKENS[v.toLowerCase()] ? null : v; });
+      // a mostly-numeric column with a few labels stays categorical — but count numerics
+      return { name: name, numeric: false, values: vals };
+    }
+    return { name: name, numeric: true, values: vals };
+  });
+  return { names: headers, n: body.length, cols: cols };
+}
+function colNumbers(ds, idx){ return ds.cols[idx].values.filter(function(v){ return v !== null; }); }
+function paired(ds, i, j){
+  var x = [], y = [], a = ds.cols[i].values, b = ds.cols[j].values;
+  for (var k = 0; k < ds.n; k++) if (a[k] !== null && b[k] !== null){ x.push(a[k]); y.push(b[k]); }
+  return { x: x, y: y };
+}
+
+/* ---------- Descriptive statistics ---------- */
+function mean(a){ var s = 0; a.forEach(function(v){ s += v; }); return s / a.length; }
+function variance(a, sample){
+  var m = mean(a), s = 0; a.forEach(function(v){ s += (v - m) * (v - m); });
+  return s / (a.length - (sample ? 1 : 0));
+}
+function quantile(a, q){
+  var s = a.slice().sort(function(x, y){ return x - y; });
+  var pos = (s.length - 1) * q, base = Math.floor(pos), rest = pos - base;
+  return s[base + 1] !== undefined ? s[base] + rest * (s[base + 1] - s[base]) : s[base];
+}
+function describe(a){
+  var n = a.length, m = mean(a), sd = Math.sqrt(variance(a, true));
+  var m2 = 0, m3 = 0, m4 = 0;
+  a.forEach(function(v){ var d = v - m; m2 += d * d; m3 += d * d * d; m4 += d * d * d * d; });
+  m2 /= n; m3 /= n; m4 /= n;
+  var skew = (n > 2 && m2 > 0) ? (Math.sqrt(n * (n - 1)) / (n - 2)) * (m3 / Math.pow(m2, 1.5)) : 0;
+  var kurt = (n > 3 && m2 > 0) ? ((n - 1) / ((n - 2) * (n - 3))) * ((n + 1) * (m4 / (m2 * m2) - 3) + 6) : 0;
+  var freq = {}, mode = null, modeN = 1;
+  a.forEach(function(v){ freq[v] = (freq[v] || 0) + 1; if (freq[v] > modeN){ modeN = freq[v]; mode = v; } });
+  var sem = sd / Math.sqrt(n);
+  var tc = tCrit(0.975, n - 1);
+  var sorted = a.slice().sort(function(x, y){ return x - y; });
+  return { n: n, mean: m, median: quantile(a, 0.5), mode: mode, sd: sd, variance: variance(a, true),
+    min: sorted[0], max: sorted[n - 1], q1: quantile(a, 0.25), q3: quantile(a, 0.75),
+    iqr: quantile(a, 0.75) - quantile(a, 0.25), sum: m * n, sem: sem,
+    ciLo: m - tc * sem, ciHi: m + tc * sem, skew: skew, kurtosis: kurt, sorted: sorted };
+}
+
+/* ---------- Special functions & distributions ---------- */
+function lgamma(x){
+  var c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313,
+    -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+  if (x < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * x)) - lgamma(1 - x);
+  x -= 1; var a = c[0], t = x + 7.5;
+  for (var i = 1; i < c.length; i++) a += c[i] / (x + i);
+  return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a);
+}
+function betacf(a, b, x){
+  var MAXIT = 200, EPS = 3e-12, FPMIN = 1e-300;
+  var qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 1 - qab * x / qap;
+  if (Math.abs(d) < FPMIN) d = FPMIN; d = 1 / d; var h = d;
+  for (var m = 1; m <= MAXIT; m++){
+    var m2 = 2 * m, aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+    d = 1 + aa * d; if (Math.abs(d) < FPMIN) d = FPMIN;
+    c = 1 + aa / c; if (Math.abs(c) < FPMIN) c = FPMIN;
+    d = 1 / d; h *= d * c;
+    aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
+    d = 1 + aa * d; if (Math.abs(d) < FPMIN) d = FPMIN;
+    c = 1 + aa / c; if (Math.abs(c) < FPMIN) c = FPMIN;
+    d = 1 / d; var del = d * c; h *= del;
+    if (Math.abs(del - 1) < EPS) break;
+  }
+  return h;
+}
+function betainc(x, a, b){
+  if (x <= 0) return 0; if (x >= 1) return 1;
+  var bt = Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+  return x < (a + 1) / (a + b + 2) ? bt * betacf(a, b, x) / a : 1 - bt * betacf(b, a, 1 - x) / b;
+}
+function gammaP(a, x){
+  if (x <= 0) return 0;
+  if (x < a + 1){
+    var ap = a, sum = 1 / a, del = sum;
+    for (var n = 1; n <= 200; n++){ ap++; del *= x / ap; sum += del; if (Math.abs(del) < Math.abs(sum) * 1e-12) break; }
+    return sum * Math.exp(-x + a * Math.log(x) - lgamma(a));
+  }
+  var b = x + 1 - a, c = 1e300, d = 1 / b, h = d;
+  for (var i = 1; i <= 200; i++){
+    var an = -i * (i - a); b += 2; d = an * d + b; if (Math.abs(d) < 1e-300) d = 1e-300;
+    c = b + an / c; if (Math.abs(c) < 1e-300) c = 1e-300;
+    d = 1 / d; var delta = d * c; h *= delta;
+    if (Math.abs(delta - 1) < 1e-12) break;
+  }
+  return 1 - Math.exp(-x + a * Math.log(x) - lgamma(a)) * h;
+}
+function erf(x){
+  var s = x < 0 ? -1 : 1; x = Math.abs(x);
+  var t = 1 / (1 + 0.3275911 * x);
+  var y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+  return s * y;
+}
+function normCdf(z){ return 0.5 * (1 + erf(z / Math.SQRT2)); }
+function tP(t, df){ var x = df / (df + t * t); return betainc(x, df / 2, 0.5); } // two-sided p
+function fP(f, d1, d2){ return betainc(d2 / (d2 + d1 * f), d2 / 2, d1 / 2); } // upper-tail p
+function chiP(x, df){ return 1 - gammaP(df / 2, x / 2); } // upper-tail p
+function tCrit(prob, df){ // quantile: P(T <= crit) = prob, via bisection on the two-sided p
+  var target = 2 * (1 - prob); // two-sided p at the critical value
+  var lo = 0, hi = 100;
+  for (var i = 0; i < 80; i++){ var mid = (lo + hi) / 2; if (tP(mid, df) > target) lo = mid; else hi = mid; }
+  return (lo + hi) / 2;
+}
+/* ---------- Formatting helpers ---------- */
+function fmt(x, d){
+  if (x === null || x === undefined || !isFinite(x)) return "—";
+  var dec = d === undefined ? 3 : d;
+  var v = Number(x);
+  if (v !== 0 && (Math.abs(v) >= 1e6 || Math.abs(v) < 1e-4)) return v.toExponential(2);
+  return v.toFixed(dec);
+}
+function fmtP(p){
+  if (p === null || p === undefined || !isFinite(p)) return "—";
+  if (p < 0.001) return "< .001";
+  return p.toFixed(3).replace(/^0/, "");
+}
+function sigStars(p){ return p < 0.001 ? "***" : p < 0.01 ? "**" : p < 0.05 ? "*" : ""; }
+/* ---------- Correlation ---------- */
+function pearson(x, y){
+  var n = x.length, mx = mean(x), my = mean(y), sxy = 0, sxx = 0, syy = 0;
+  for (var i = 0; i < n; i++){ var dx = x[i] - mx, dy = y[i] - my; sxy += dx * dy; sxx += dx * dx; syy += dy * dy; }
+  if (sxx === 0 || syy === 0) return null;
+  var r = sxy / Math.sqrt(sxx * syy);
+  var t = r * Math.sqrt((n - 2) / (1 - r * r));
+  return { r: r, n: n, t: t, p: n > 2 ? tP(t, n - 2) : null };
+}
+function ranks(a){
+  var idx = a.map(function(v, i){ return [v, i]; }).sort(function(p, q){ return p[0] - q[0]; });
+  var out = new Array(a.length), i = 0;
+  while (i < idx.length){
+    var j = i;
+    while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++;
+    var avg = (i + j) / 2 + 1;
+    for (var k = i; k <= j; k++) out[idx[k][1]] = avg;
+    i = j + 1;
+  }
+  return out;
+}
+function spearman(x, y){ return pearson(ranks(x), ranks(y)); }
+
+/* ---------- t-tests & ANOVA ---------- */
+function tTestOne(a, mu0){
+  var d = describe(a), t = (d.mean - mu0) / d.sem, df = d.n - 1;
+  return { n: d.n, mean: d.mean, sd: d.sd, mu0: mu0, t: t, df: df, p: tP(t, df), diff: d.mean - mu0,
+    ciLo: d.mean - mu0 - tCrit(0.975, df) * d.sem, ciHi: d.mean - mu0 + tCrit(0.975, df) * d.sem };
+}
+function tTestInd(a, b, pooled){
+  var da = describe(a), db = describe(b), diff = da.mean - db.mean, se, df;
+  if (pooled){
+    var sp2 = ((da.n - 1) * da.variance + (db.n - 1) * db.variance) / (da.n + db.n - 2);
+    se = Math.sqrt(sp2 * (1 / da.n + 1 / db.n)); df = da.n + db.n - 2;
+  } else {
+    var va = da.variance / da.n, vb = db.variance / db.n;
+    se = Math.sqrt(va + vb); df = (va + vb) * (va + vb) / (va * va / (da.n - 1) + vb * vb / (db.n - 1));
+  }
+  var t = diff / se, tc = tCrit(0.975, Math.max(1, Math.round(df)));
+  var dPool = Math.sqrt(((da.n - 1) * da.variance + (db.n - 1) * db.variance) / (da.n + db.n - 2));
+  return { a: da, b: db, diff: diff, se: se, t: t, df: df, p: tP(t, df),
+    ciLo: diff - tc * se, ciHi: diff + tc * se, cohensD: dPool > 0 ? diff / dPool : 0, pooled: pooled };
+}
+function tTestPaired(x, y){
+  var diffs = x.map(function(v, i){ return v - y[i]; });
+  var d = describe(diffs), t = d.mean / d.sem, df = d.n - 1;
+  return { n: d.n, meanDiff: d.mean, sdDiff: d.sd, t: t, df: df, p: tP(t, df),
+    ciLo: d.mean - tCrit(0.975, df) * d.sem, ciHi: d.mean + tCrit(0.975, df) * d.sem,
+    cohensD: d.sd > 0 ? d.mean / d.sd : 0 };
+}
+function anovaOneWay(groups){ // groups: [{name, values}]
+  var k = groups.length, all = [];
+  groups.forEach(function(g){ all = all.concat(g.values); });
+  var grand = mean(all), N = all.length, ssb = 0, ssw = 0;
+  var stats = groups.map(function(g){
+    var d = describe(g.values);
+    ssb += g.values.length * (d.mean - grand) * (d.mean - grand);
+    g.values.forEach(function(v){ ssw += (v - d.mean) * (v - d.mean); });
+    return { name: g.name, d: d };
+  });
+  var dfB = k - 1, dfW = N - k, msb = ssb / dfB, msw = ssw / dfW, F = msb / msw;
+  return { groups: stats, k: k, N: N, grand: grand, ssb: ssb, ssw: ssw, dfB: dfB, dfW: dfW,
+    msb: msb, msw: msw, F: F, p: fP(F, dfB, dfW), eta2: ssb / (ssb + ssw) };
+}
+
+/* ---------- Chi-square ---------- */
+function chiSquare(table){ // table: rows x cols of counts
+  var R = table.length, C = table[0].length;
+  var rowT = table.map(function(r){ return r.reduce(function(s, v){ return s + v; }, 0); });
+  var colT = []; for (var j = 0; j < C; j++){ var s = 0; for (var i = 0; i < R; i++) s += table[i][j]; colT.push(s); }
+  var N = rowT.reduce(function(s, v){ return s + v; }, 0);
+  var chi2 = 0, lowCells = 0;
+  var expected = table.map(function(r, i){ return r.map(function(o, j){
+    var e = rowT[i] * colT[j] / N; if (e < 5) lowCells++;
+    chi2 += (o - e) * (o - e) / e; return e;
+  }); });
+  var df = (R - 1) * (C - 1);
+  return { chi2: chi2, df: df, p: chiP(chi2, df), N: N, expected: expected,
+    cramersV: Math.sqrt(chi2 / (N * Math.min(R - 1, C - 1))), lowCellPct: 100 * lowCells / (R * C) };
+}
+
+/* ---------- Matrix helpers ---------- */
+function matInverse(A){
+  var n = A.length, M = A.map(function(r, i){ var row = r.slice(); for (var j = 0; j < n; j++) row.push(i === j ? 1 : 0); return row; });
+  for (var col = 0, row = 0; col < n && row < n; col++, row++){
+    var piv = row; for (var i = row + 1; i < n; i++) if (Math.abs(M[i][col]) > Math.abs(M[piv][col])) piv = i;
+    if (Math.abs(M[piv][col]) < 1e-11) return null;
+    var tmp = M[row]; M[row] = M[piv]; M[piv] = tmp;
+    var div = M[row][col]; for (var j = 0; j < 2 * n; j++) M[row][j] /= div;
+    for (var k = 0; k < n; k++){
+      if (k === row) continue;
+      var factor = M[k][col];
+      if (factor !== 0) for (var j2 = 0; j2 < 2 * n; j2++) M[k][j2] -= factor * M[row][j2];
+    }
+  }
+  return M.map(function(r){ return r.slice(n); });
+}
+function matMul(A, B){
+  var n = A.length, m = B[0].length, p = B.length, out = [];
+  for (var i = 0; i < n; i++){ out.push([]); for (var j = 0; j < m; j++){ var s = 0; for (var k = 0; k < p; k++) s += A[i][k] * B[k][j]; out[i].push(s); } }
+  return out;
+}
+/* OLS: y (array), X (array of predictor arrays), names (predictor names) */
+function ols(y, X, names){
+  var n = y.length, k = X.length + 1; // + intercept
+  if (n <= k) return { error: "Not enough complete cases (" + n + ") for " + (k - 1) + " predictor(s). Remove missing data or predictors." };
+  var XtX = [], XtY = [];
+  for (var i = 0; i < k; i++){ XtX.push(new Array(k).fill(0)); XtY.push(0); }
+  function xv(row, j){ return j === 0 ? 1 : X[j - 1][row]; }
+  for (var r = 0; r < n; r++) for (var a = 0; a < k; a++){
+    XtY[a] += xv(r, a) * y[r];
+    for (var b = 0; b < k; b++) XtX[a][b] += xv(r, a) * xv(r, b);
+  }
+  var inv = matInverse(XtX);
+  if (!inv) return { error: "The predictors are perfectly (or nearly perfectly) collinear — the model cannot be estimated. Remove a redundant predictor." };
+  var beta = inv.map(function(r2){ return r2.reduce(function(s, v, j){ return s + v * XtY[j]; }, 0); });
+  var ybar = mean(y), rss = 0, tss = 0;
+  for (var r3 = 0; r3 < n; r3++){
+    var fit = 0; for (var j2 = 0; j2 < k; j2++) fit += beta[j2] * xv(r3, j2);
+    rss += (y[r3] - fit) * (y[r3] - fit); tss += (y[r3] - ybar) * (y[r3] - ybar);
+  }
+  var dfRes = n - k, s2 = rss / dfRes, r2 = tss > 0 ? 1 - rss / tss : 0;
+  var coef = beta.map(function(b, j){
+    var se = Math.sqrt(Math.max(0, s2 * inv[j][j])), t = se > 0 ? b / se : 0;
+    return { name: j === 0 ? "(Constant)" : names[j - 1], b: b, se: se, t: t, p: tP(t, dfRes),
+      betaStd: 0 };
+  });
+  // standardised coefficients
+  var sy = Math.sqrt(variance(y, true));
+  for (var j3 = 1; j3 < k; j3++){
+    var sx = Math.sqrt(variance(X[j3 - 1], true));
+    coef[j3].betaStd = sy > 0 ? beta[j3] * sx / sy : 0;
+  }
+  var F = dfRes > 0 && rss > 0 ? ((tss - rss) / (k - 1)) / (rss / dfRes) : 0;
+  return { coef: coef, r2: r2, adjR2: 1 - (1 - r2) * (n - 1) / dfRes, F: F, fp: fP(F, k - 1, dfRes),
+    dfModel: k - 1, dfRes: dfRes, sigma: Math.sqrt(s2), n: n };
+}
+/* ---------- Eigendecomposition (Jacobi, symmetric matrices) ---------- */
+function jacobiEigen(Ain){
+  var n = Ain.length, A = Ain.map(function(r){ return r.slice(); });
+  var V = []; for (var i = 0; i < n; i++){ V.push([]); for (var j = 0; j < n; j++) V[i].push(i === j ? 1 : 0); }
+  for (var sweep = 0; sweep < 100; sweep++){
+    var off = 0; for (var p = 0; p < n; p++) for (var q = p + 1; q < n; q++) off += A[p][q] * A[p][q];
+    if (off < 1e-14) break;
+    for (var p2 = 0; p2 < n - 1; p2++) for (var q2 = p2 + 1; q2 < n; q2++){
+      if (Math.abs(A[p2][q2]) < 1e-15) continue;
+      var theta = 0.5 * Math.atan2(2 * A[p2][q2], A[q2][q2] - A[p2][p2]);
+      var c = Math.cos(theta), s = Math.sin(theta);
+      for (var k = 0; k < n; k++){
+        var akp = A[k][p2], akq = A[k][q2];
+        A[k][p2] = c * akp - s * akq; A[k][q2] = s * akp + c * akq;
+      }
+      for (var k2 = 0; k2 < n; k2++){
+        var apk = A[p2][k2], aqk = A[q2][k2];
+        A[p2][k2] = c * apk - s * aqk; A[q2][k2] = s * apk + c * aqk;
+      }
+      for (var k3 = 0; k3 < n; k3++){
+        var vkp = V[k3][p2], vkq = V[k3][q2];
+        V[k3][p2] = c * vkp - s * vkq; V[k3][q2] = s * vkp + c * vkq;
+      }
+    }
+  }
+  var vals = []; for (var d = 0; d < n; d++) vals.push(A[d][d]);
+  var order = vals.map(function(v, i){ return i; }).sort(function(a, b){ return vals[b] - vals[a]; });
+  return { values: order.map(function(i){ return vals[i]; }),
+    vectors: order.map(function(i){ var col = []; for (var r = 0; r < n; r++) col.push(V[r][i]); return col; }) };
+}
+function corrMatrix(colsData){ // colsData: array of complete-case columns
+  var p = colsData.length, R = [];
+  for (var i = 0; i < p; i++){ R.push([]); for (var j = 0; j < p; j++){
+    var r = pearson(colsData[i], colsData[j]); R[i].push(r ? r.r : 0);
+  } }
+  return R;
+}
+/* PCA on standardised data (correlation-based) */
+function pca(colsData, names){
+  var R = corrMatrix(colsData), eig = jacobiEigen(R), p = colsData.length;
+  var total = eig.values.reduce(function(s, v){ return s + Math.max(0, v); }, 0);
+  var comps = eig.values.map(function(ev, ci){
+    var loadings = eig.vectors[ci].map(function(v){ return v * Math.sqrt(Math.max(0, ev)); });
+    return { eigenvalue: ev, pct: total > 0 ? 100 * Math.max(0, ev) / total : 0, loadings: loadings };
+  });
+  var cum = 0; comps.forEach(function(c){ cum += c.pct; c.cumPct = cum; });
+  return { components: comps, names: names.slice(), totalVar: total };
+}
+/* Varimax rotation (loadings: rows = variables, cols = factors) */
+function varimax(L, iters){
+  var p = L.length, f = L[0].length;
+  if (f < 2) return L.map(function(r){ return r.slice(); });
+  var R = L.map(function(r){ return r.slice(); });
+  for (var it = 0; it < (iters || 100); it++){
+    var maxAng = 0;
+    for (var i = 0; i < f - 1; i++) for (var j = i + 1; j < f; j++){
+      // standard varimax angle (Kaiser): u = a^2-b^2, v = 2ab aggregates
+      var su = 0, sv = 0, suv = 0, suu = 0, svv = 0;
+      for (var v2 = 0; v2 < p; v2++){
+        var a2 = R[v2][i], b2 = R[v2][j], uu = a2 * a2 - b2 * b2, vv = 2 * a2 * b2;
+        su += uu; sv += vv; suv += uu * vv; suu += uu * uu; svv += vv * vv;
+      }
+      var numA = 2 * suv - 2 * su * sv / p;
+      var denA = suu - svv - (su * su - sv * sv) / p;
+      var ang = 0.25 * Math.atan2(numA, denA);
+      maxAng = Math.max(maxAng, Math.abs(ang));
+      if (Math.abs(ang) > 1e-10){
+        var c = Math.cos(ang), s = Math.sin(ang);
+        for (var v3 = 0; v3 < p; v3++){
+          var x = R[v3][i], y = R[v3][j];
+          R[v3][i] = c * x - s * y; R[v3][j] = s * x + c * y;
+        }
+      }
+    }
+    if (maxAng < 1e-6) break;
+  }
+  return R;
+}
+/* Factor analysis: principal axis factoring with iterated communalities + varimax */
+function factorAnalysis(colsData, names, nf){
+  var p = colsData.length, R = corrMatrix(colsData);
+  var inv = matInverse(R.map(function(r){ return r.slice(); }));
+  var h2 = [];
+  for (var i = 0; i < p; i++) h2.push(inv && inv[i][i] > 0 ? Math.min(0.99, Math.max(0.05, 1 - 1 / inv[i][i])) : 0.5);
+  var L = null;
+  for (var iter = 0; iter < 100; iter++){
+    var Rr = R.map(function(r, ri){ return r.map(function(v, ci){ return ri === ci ? h2[ri] : v; }); });
+    var eig = jacobiEigen(Rr);
+    L = [];
+    for (var v = 0; v < p; v++){
+      L.push([]);
+      for (var f = 0; f < nf; f++){
+        var ev = Math.max(0, eig.values[f] || 0);
+        L[v].push((eig.vectors[f] ? eig.vectors[f][v] : 0) * Math.sqrt(ev));
+      }
+    }
+    var newH2 = L.map(function(row){ return row.reduce(function(s, x){ return s + x * x; }, 0); });
+    var change = 0; for (var v2 = 0; v2 < p; v2++) change = Math.max(change, Math.abs(newH2[v2] - h2[v2]));
+    h2 = newH2.map(function(x){ return Math.min(0.999, x); });
+    if (change < 1e-4) break;
+  }
+  var rot = varimax(L);
+  // order factors by explained variance (desc) and orient signs so largest loading is positive
+  var ss = [];
+  for (var f2 = 0; f2 < nf; f2++){ var s = 0; for (var v3 = 0; v3 < p; v3++) s += rot[v3][f2] * rot[v3][f2]; ss.push(s); }
+  var order = ss.map(function(v, i){ return i; }).sort(function(a, b){ return ss[b] - ss[a]; });
+  var loadings = rot.map(function(row){
+    return order.map(function(f){ return row[f]; });
+  });
+  loadings.forEach(function(row, v4){
+    // nothing per-row; sign orientation per factor below
+  });
+  for (var f3 = 0; f3 < nf; f3++){
+    var maxRow = 0, maxAbs = 0;
+    loadings.forEach(function(row, v5){ if (Math.abs(row[f3]) > maxAbs){ maxAbs = Math.abs(row[f3]); maxRow = v5; } });
+    if (loadings[maxRow][f3] < 0) loadings.forEach(function(row){ row[f3] = -row[f3]; });
+  }
+  var ssOrd = order.map(function(f){ return ss[f]; });
+  return { loadings: loadings, communalities: h2, names: names.slice(),
+    ssLoadings: ssOrd, pct: ssOrd.map(function(s){ return 100 * s / p; }) };
+}
+/* PURE-CORE-END */
+</script>
+
+<script>
+"use strict";
+/* ================= APP ================= */
+var $ = function(id){ return document.getElementById(id); };
+var DS = null, currentAn = "visualize", lastChart = null;
+var SAMPLE_CSV = "Student,Gender,Group,StudyHours,PreTest,PostTest,Satisfaction\n" +
+"Ayesha,F,Interactive,6.5,58,82,5\nBilal,M,Control,3.0,61,66,3\nFatima,F,Video,4.5,55,71,4\n" +
+"Usman,M,Interactive,7.0,63,88,5\nZainab,F,Control,2.5,59,63,2\nAhmed,M,Video,5.0,66,74,4\n" +
+"Maryam,F,Interactive,8.0,70,91,5\nHassan,M,Control,3.5,52,60,3\nAmina,F,Video,4.0,60,69,3\n" +
+"Omar,M,Interactive,6.0,57,84,4\nHira,F,Control,3.2,64,68,3\nAli,M,Video,5.5,62,77,4\n" +
+"Sana,F,Interactive,7.5,68,90,5\nDanish,M,Control,2.8,56,61,2\nMahnoor,F,Video,4.8,59,73,4\n" +
+"Hamza,M,Interactive,6.8,65,87,5\nIqra,F,Control,3.9,60,67,3\nShahid,M,Video,5.2,58,72,3\n" +
+"Nadia,F,Interactive,7.2,71,93,5\nBilal2,M,Control,3.1,54,62,2\nRabia,F,Video,4.6,63,75,4\n" +
+"Talha,M,Interactive,6.2,59,85,4\nMehwish,F,Control,2.9,57,64,3\nFahad,M,Video,5.8,67,79,4\n";
+
+function showMsg(el, text, kind){ el.textContent = text || ""; el.className = "msg" + (text ? " " + kind : ""); }
+function numCols(){ return DS ? DS.cols.map(function(c, i){ return c.numeric ? i : -1; }).filter(function(i){ return i >= 0; }) : []; }
+function catCols(){ return DS ? DS.cols.map(function(c, i){ return !c.numeric ? i : -1; }).filter(function(i){ return i >= 0; }) : []; }
+function levels(idx){
+  var seen = [], vals = DS.cols[idx].values;
+  vals.forEach(function(v){ if (v !== null && seen.indexOf(v) < 0) seen.push(v); });
+  return seen;
+}
+function groupsFrom(catIdx, numIdx){
+  var map = {}, order = [];
+  for (var r = 0; r < DS.n; r++){
+    var g = DS.cols[catIdx].values[r], v = DS.cols[numIdx].values[r];
+    if (g !== null && v !== null){
+      if (!map[g]){ map[g] = []; order.push(g); }
+      map[g].push(v);
+    }
+  }
+  return order.map(function(g){ return { name: String(g), values: map[g] }; });
+}
+function completeCols(idxs){
+  var keep = [];
+  for (var r = 0; r < DS.n; r++){
+    var ok = true;
+    for (var j = 0; j < idxs.length; j++) if (DS.cols[idxs[j]].values[r] === null){ ok = false; break; }
+    if (ok) keep.push(r);
+  }
+  return { cols: idxs.map(function(ci){ return keep.map(function(r){ return DS.cols[ci].values[r]; }); }),
+    names: idxs.map(function(ci){ return DS.cols[ci].name; }), n: keep.length };
+}
+
+/* ---------- Data loading ---------- */
+function setData(ds, sourceLabel){
+  if (ds.error){ showMsg($("dataMsg"), ds.error, "error"); return; }
+  DS = ds;
+  showMsg($("dataMsg"), "Loaded " + DS.n + " rows × " + DS.names.length + " columns from " + sourceLabel + ". Choose an analysis below.", "ok");
+  $("dsMeta").textContent = DS.n + " rows · " + DS.names.length + " columns";
+  var chips = "";
+  DS.cols.forEach(function(c){
+    var nn = c.values.filter(function(v){ return v !== null; }).length;
+    chips += "<span class='chip'><b>" + esc(c.name) + "</b> · " + nn + " values" +
+      "<span class='tag " + (c.numeric ? "num'>numeric" : "cat'>categorical") + "</span></span>";
+  });
+  $("colChips").innerHTML = chips;
+  var head = "<tr>" + DS.names.map(function(n){ return "<th>" + esc(n) + "</th>"; }).join("") + "</tr>";
+  var rowsHtml = "";
+  for (var r = 0; r < Math.min(8, DS.n); r++){
+    rowsHtml += "<tr>" + DS.cols.map(function(c){ var v = c.values[r]; return "<td>" + (v === null ? "<i style='color:#999'>—</i>" : esc(String(v))) + "</td>"; }).join("") + "</tr>";
+  }
+  $("previewTable").innerHTML = head + rowsHtml;
+  $("previewNote").textContent = DS.n > 8 ? "Preview: first 8 of " + DS.n + " rows." : "";
+  $("dataSummary").classList.remove("hidden");
+  $("analysisCard").classList.remove("hidden");
+  buildConfigs();
+}
+function esc(s){ return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function loadText(text, label){
+  try {
+    var grid;
+    var trimmed = text.trim();
+    if (!trimmed) { showMsg($("dataMsg"), "There is no data to load — the input is empty.", "error"); return; }
+    if (trimmed[0] === "[" ) grid = parseJsonData(trimmed);
+    else grid = parseSmartGrid(trimmed);
+    setData(buildDataset(grid), label);
+  } catch(e){ showMsg($("dataMsg"), "Could not read that data: " + e.message, "error"); }
+}
+$("drop").addEventListener("click", function(){ $("file").click(); });
+$("drop").addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); $("file").click(); } });
+["dragenter", "dragover"].forEach(function(ev){ $("drop").addEventListener(ev, function(e){ e.preventDefault(); this.classList.add("dragover"); }); });
+["dragleave", "drop"].forEach(function(ev){ $("drop").addEventListener(ev, function(e){ e.preventDefault(); this.classList.remove("dragover"); }); });
+$("drop").addEventListener("drop", function(e){ if (e.dataTransfer.files.length) readFile(e.dataTransfer.files[0]); });
+$("file").addEventListener("change", function(){ if (this.files.length) readFile(this.files[0]); this.value = ""; });
+function readFile(file){
+  if (file.size > 5 * 1024 * 1024){ showMsg($("dataMsg"), "That file is larger than 5 MB. Please reduce it (fewer rows) and try again.", "error"); return; }
+  var lname = file.name.toLowerCase();
+  if (lname.endsWith(".xlsx") || lname.endsWith(".xls")){
+    var xr = new FileReader();
+    xr.onload = function(){
+      parseXlsx(xr.result).then(function(grid){ setData(buildDataset(grid), "Excel file “" + file.name + "”"); })
+        .catch(function(e){ showMsg($("dataMsg"), "Could not read that Excel file: " + e.message, "error"); });
+    };
+    xr.onerror = function(){ showMsg($("dataMsg"), "The file could not be read.", "error"); };
+    xr.readAsArrayBuffer(file);
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(){ loadText(String(reader.result), "file “" + file.name + "”"); };
+  reader.onerror = function(){ showMsg($("dataMsg"), "The file could not be read.", "error"); };
+  reader.readAsText(file);
+}
+$("loadPaste").addEventListener("click", function(){ loadText($("paste").value, "pasted data"); });
+$("loadSample").addEventListener("click", function(){ $("paste").value = ""; loadText(SAMPLE_CSV, "the sample dataset (24 students)"); });
+$("clearData").addEventListener("click", function(){
+  DS = null; $("paste").value = "";
+  showMsg($("dataMsg"), "", ""); $("dataSummary").classList.add("hidden");
+  $("analysisCard").classList.add("hidden"); $("resultCard").classList.add("hidden");
+});
+
+/* ---------- Config builders ---------- */
+function sel(id, idxs, selected){
+  var o = "<select id='" + id + "'>";
+  idxs.forEach(function(i){ o += "<option value='" + i + "'" + (i === selected ? " selected" : "") + ">" + esc(DS.cols[i].name) + "</option>"; });
+  return o + "</select>";
+}
+function checks(idPrefix, idxs, checkedAll){
+  var o = "<div class='checks'>";
+  idxs.forEach(function(i){
+    o += "<label><input type='checkbox' class='" + idPrefix + "' value='" + i + "'" + (checkedAll ? " checked" : "") + "> " + esc(DS.cols[i].name) + "</label>";
+  });
+  return o + "</div>";
+}
+function checkedIdx(cls){ return Array.prototype.slice.call(document.querySelectorAll("." + cls + ":checked")).map(function(b){ return parseInt(b.value, 10); }); }
+function buildConfigs(){
+  var nc = numCols(), cc = catCols(), h = "";
+  // Visualize
+  h += "<div class='cfg' id='cfg-visualize'><div class='row'><label>Chart type</label><select id='viz-type'>" +
+    "<option value='dist'>Distribution (histogram + density)</option><option value='box'>Box plot</option>" +
+    "<option value='scatter'>Scatter plot</option><option value='line'>Line chart</option>" +
+    "<option value='pie'>Pie chart (composition)</option><option value='qq'>Normal Q–Q plot</option>" +
+    "<option value='heat'>Correlation heatmap</option><option value='biplot'>PCA biplot</option></select></div>" +
+    "<div class='row' id='vizPickers'></div></div>";
+  // Descriptive
+  h += "<div class='cfg active' id='cfg-descriptive'><div class='row'><label>Numeric variables</label>" + checks("ck-desc", nc, true) + "</div></div>";
+  // T-tests
+  h += "<div class='cfg' id='cfg-ttest'>" +
+    "<div class='row'><label>Test type</label><select id='tt-mode'><option value='one'>One-sample t-test</option><option value='ind'>Independent two-sample t-test</option><option value='paired'>Paired t-test</option></select></div>" +
+    "<div class='row'><label>Variable 1 (numeric)</label><span id='tt-v1'>" + sel("tt-var1", nc, nc[0]) + "</span></div>" +
+    "<div class='row' id='tt-mu-row'><label>Test value (μ₀)</label><input type='number' id='tt-mu' value='0' step='any'></div>" +
+    "<div class='row hidden' id='tt-group-row'><label>Grouping variable (2 categories) — for independent test</label>" + sel("tt-group", cc, cc[0]) + "</div>" +
+    "<div class='row hidden' id='tt-v2-row'><label>Variable 2 (numeric) — for paired test</label>" + sel("tt-var2", nc, nc[1] !== undefined ? nc[1] : nc[0]) + "</div>" +
+    "<div class='row hidden' id='tt-var-row'><label>Equal variances (pooled) or Welch</label><select id='tt-pool'><option value='welch'>Welch (recommended)</option><option value='pooled'>Pooled (equal variances)</option></select></div></div>";
+  // ANOVA
+  h += "<div class='cfg' id='cfg-anova'><div class='row'><label>Numeric variable</label>" + sel("an-var", nc, nc[0]) + "</div>" +
+    "<div class='row'><label>Grouping variable (2+ categories)</label>" + sel("an-group", cc, cc[0]) + "</div></div>";
+  // Chi-square
+  h += "<div class='cfg' id='cfg-chisq'><div class='row'><label>Categorical variable 1 (rows)</label>" + sel("ch-v1", cc, cc[0]) + "</div>" +
+    "<div class='row'><label>Categorical variable 2 (columns)</label>" + sel("ch-v2", cc, cc[1] !== undefined ? cc[1] : cc[0]) + "</div></div>";
+  // Correlation
+  h += "<div class='cfg' id='cfg-corr'><div class='row'><label>Method</label><select id='co-method'><option value='pearson'>Pearson (linear)</option><option value='spearman'>Spearman (ranks)</option></select></div>" +
+    "<div class='row'><label>Numeric variables (2 or more)</label>" + checks("ck-corr", nc, true) + "</div></div>";
+  // Regression
+  h += "<div class='cfg' id='cfg-regression'><div class='row'><label>Outcome Y (numeric)</label>" + sel("rg-y", nc, nc[0]) + "</div>" +
+    "<div class='row'><label>Predictor X (numeric)</label>" + sel("rg-x", nc, nc[1] !== undefined ? nc[1] : nc[0]) + "</div></div>";
+  // Multiple regression
+  h += "<div class='cfg' id='cfg-multireg'><div class='row'><label>Outcome Y (numeric)</label>" + sel("mr-y", nc, nc[0]) + "</div>" +
+    "<div class='row'><label>Predictors (1 or more)</label>" + checks("ck-mr", nc, false) + "</div></div>";
+  // PCA
+  h += "<div class='cfg' id='cfg-pca'><div class='row'><label>Numeric variables (2 or more; 3+ recommended)</label>" + checks("ck-pca", nc, true) + "</div></div>";
+  // Factor
+  h += "<div class='cfg' id='cfg-factor'><div class='row'><label>Numeric variables (3 or more)</label>" + checks("ck-fa", nc, true) + "</div>" +
+    "<div class='row'><label>Number of factors</label><input type='number' id='fa-nf' value='2' min='1' max='6'></div></div>";
+  $("cfgs").innerHTML = h;
+  var vt = $("viz-type");
+  if (vt){ vt.addEventListener("change", renderVizPickers); renderVizPickers(); }
+  var mode = $("tt-mode");
+  if (mode) mode.addEventListener("change", ttModeSync);
+  ttModeSync();
+  document.querySelectorAll(".cfg").forEach(function(c){ c.classList.remove("active"); });
+  $("cfg-" + currentAn).classList.add("active");
+}
+function ttModeSync(){
+  var m = $("tt-mode") ? $("tt-mode").value : "one";
+  $("tt-mu-row").classList.toggle("hidden", m !== "one");
+  $("tt-group-row").classList.toggle("hidden", m !== "ind");
+  $("tt-var-row").classList.toggle("hidden", m !== "ind");
+  $("tt-v2-row").classList.toggle("hidden", m !== "paired");
+}
+$("tabs").addEventListener("click", function(e){
+  var btn = e.target.closest("button"); if (!btn) return;
+  currentAn = btn.getAttribute("data-an");
+  this.querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
+  document.querySelectorAll(".cfg").forEach(function(c){ c.classList.remove("active"); });
+  var cfg = $("cfg-" + currentAn); if (cfg) cfg.classList.add("active");
+  showMsg($("anMsg"), "", "");
+});
+
+/* ---------- Result helpers ---------- */
+function tableHtml(headers, rows, numFrom){
+  var o = "<div class='tblwrap'><table class='data'><tr>";
+  headers.forEach(function(h, i){ o += "<th" + (i >= (numFrom || 0) ? " class='num'" : "") + ">" + h + "</th>"; });
+  o += "</tr>";
+  rows.forEach(function(r){
+    o += "<tr>" + r.map(function(c, i){ return "<td" + (i >= (numFrom || 0) ? " class='num'" : "") + ">" + c + "</td>"; }).join("") + "</tr>";
+  });
+  return o + "</table></div>";
+}
+function interp(html){ return "<div class='interp'>" + html + "</div>"; }
+function sigWord(p){ return p < 0.05 ? "<b>statistically significant</b>" : "<b>not statistically significant</b>"; }
+function showResult(html, chartFn){
+  $("result").innerHTML = html;
+  $("resultCard").classList.remove("hidden");
+  lastChart = chartFn || null;
+  if (chartFn) chartFn();
+  if (window.__afterResult) window.__afterResult();
+  $("resultCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+function errMsg(t){ showMsg($("anMsg"), t, "error"); }
+function needNum(n){ if (!numCols().length){ errMsg("This analysis needs numeric columns, but the dataset has none. Check that your numbers are written as digits (e.g. 72, not “72 points”)."); return false; } return true; }
+function effectR(r){
+  var a = Math.abs(r);
+  return a < 0.1 ? "negligible" : a < 0.3 ? "small" : a < 0.5 ? "moderate" : a < 0.7 ? "strong" : "very strong";
+}
+function effectD(d){
+  var a = Math.abs(d);
+  return a < 0.2 ? "negligible" : a < 0.5 ? "small" : a < 0.8 ? "medium" : "large";
+}
+
+/* ---------- Charts (canvas) ---------- */
+function newCanvas(w, h){
+  var c = document.createElement("canvas"); c.width = w; c.height = h;
+  var box = document.createElement("div"); box.className = "chartbox"; box.appendChild(c);
+  $("result").appendChild(box);
+  return c.getContext("2d");
+}
+function drawHistogram(values, title){
+  var ctx = newCanvas(640, 340), W = 640, H = 340, padL = 46, padB = 34, padT = 26, padR = 12;
+  var d = describe(values), bins = Math.max(5, Math.min(16, Math.ceil(Math.sqrt(values.length))));
+  var lo = d.min, hi = d.max, bw = (hi - lo) / bins || 1, counts = new Array(bins).fill(0);
+  values.forEach(function(v){ var b = Math.min(bins - 1, Math.floor((v - lo) / bw)); counts[b]++; });
+  var maxC = Math.max.apply(null, counts), iw = W - padL - padR, ih = H - padT - padB;
+  ctx.fillStyle = "#103E32"; ctx.font = "bold 14px sans-serif"; ctx.fillText(title, padL, 17);
+  ctx.strokeStyle = "#B9C8BC"; ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ih); ctx.lineTo(padL + iw, padT + ih); ctx.stroke();
+  ctx.font = "11px sans-serif"; ctx.fillStyle = "#5A6E64";
+  for (var g = 0; g <= 4; g++){ var y = padT + ih - ih * g / 4; ctx.fillText(String(Math.round(maxC * g / 4)), 14, y + 4); }
+  counts.forEach(function(c, i){
+    var bh = ih * c / maxC, x = padL + iw * i / bins, w = iw / bins - 2;
+    ctx.fillStyle = "#2E7D5B"; ctx.fillRect(x, padT + ih - bh, w, bh);
+  });
+  ctx.fillStyle = "#5A6E64";
+  for (var t = 0; t <= 4; t++){ var xv = lo + (hi - lo) * t / 4; ctx.fillText(fmt(xv, 1), padL + iw * t / 4 - 10, H - 12); }
+}
+function drawScatter(x, y, slope, intercept, xName, yName){
+  var ctx = newCanvas(640, 360), W = 640, H = 360, padL = 50, padB = 36, padT = 16, padR = 14;
+  var iw = W - padL - padR, ih = H - padT - padB;
+  var xlo = Math.min.apply(null, x), xhi = Math.max.apply(null, x), ylo = Math.min.apply(null, y), yhi = Math.max.apply(null, y);
+  var xp = (xhi - xlo) * 0.05 || 1, yp = (yhi - ylo) * 0.05 || 1;
+  xlo -= xp; xhi += xp; ylo -= yp; yhi += yp;
+  function X(v){ return padL + iw * (v - xlo) / (xhi - xlo); }
+  function Y(v){ return padT + ih - ih * (v - ylo) / (yhi - ylo); }
+  ctx.strokeStyle = "#B9C8BC"; ctx.strokeRect(padL, padT, iw, ih);
+  ctx.font = "11px sans-serif"; ctx.fillStyle = "#5A6E64";
+  ctx.fillText(fmt(xlo, 1), padL - 6, H - 14); ctx.fillText(fmt(xhi, 1), padL + iw - 24, H - 14);
+  ctx.fillText(xName + " →", padL + iw / 2 - 30, H - 14);
+  ctx.fillText(fmt(yhi, 1), 8, padT + 10); ctx.fillText(fmt(ylo, 1), 8, padT + ih);
+  ctx.fillStyle = "#103E32";
+  for (var i = 0; i < x.length; i++){ ctx.beginPath(); ctx.arc(X(x[i]), Y(y[i]), 3.4, 0, 7); ctx.fill(); }
+  if (slope !== null){
+    ctx.strokeStyle = "#C0392B"; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.moveTo(X(xlo), Y(intercept + slope * xlo)); ctx.lineTo(X(xhi), Y(intercept + slope * xhi)); ctx.stroke(); ctx.lineWidth = 1;
+  }
+}
+function drawBoxplot(groups, title){
+  var ctx = newCanvas(640, 330), W = 640, H = 330, padL = 46, padB = 30, padT = 26, padR = 12;
+  var all = []; groups.forEach(function(g){ all = all.concat(g.values); });
+  var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all), pad = (hi - lo) * 0.06 || 1;
+  lo -= pad; hi += pad;
+  var iw = W - padL - padR, ih = H - padT - padB;
+  function Y(v){ return padT + ih - ih * (v - lo) / (hi - lo); }
+  ctx.fillStyle = "#103E32"; ctx.font = "bold 14px sans-serif"; ctx.fillText(title, padL, 17);
+  ctx.strokeStyle = "#B9C8BC"; ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ih); ctx.stroke();
+  ctx.font = "11px sans-serif"; ctx.fillStyle = "#5A6E64";
+  for (var g = 0; g <= 4; g++){ var v = lo + (hi - lo) * g / 4; ctx.fillText(fmt(v, 1), 8, Y(v) + 4); }
+  var slot = iw / groups.length;
+  groups.forEach(function(gr, i){
+    var d = describe(gr.values), cx = padL + slot * i + slot / 2, bw = Math.min(90, slot * 0.55);
+    ctx.strokeStyle = "#103E32"; ctx.fillStyle = "rgba(46,125,91,.25)";
+    ctx.fillRect(cx - bw / 2, Y(d.q3), bw, Y(d.q1) - Y(d.q3));
+    ctx.strokeRect(cx - bw / 2, Y(d.q3), bw, Y(d.q1) - Y(d.q3));
+    ctx.beginPath(); ctx.moveTo(cx - bw / 2, Y(d.median)); ctx.lineTo(cx + bw / 2, Y(d.median)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, Y(d.q3)); ctx.lineTo(cx, Y(d.max)); ctx.moveTo(cx, Y(d.q1)); ctx.lineTo(cx, Y(d.min));
+    ctx.moveTo(cx - bw / 4, Y(d.max)); ctx.lineTo(cx + bw / 4, Y(d.max)); ctx.moveTo(cx - bw / 4, Y(d.min)); ctx.lineTo(cx + bw / 4, Y(d.min)); ctx.stroke();
+    ctx.fillStyle = "#17352B"; ctx.font = "12px sans-serif";
+    ctx.fillText(gr.name.length > 12 ? gr.name.slice(0, 11) + "…" : gr.name, cx - 22, H - 8);
+    ctx.font = "11px sans-serif";
+  });
+}
+function drawScree(pcts, title){
+  var ctx = newCanvas(640, 320), W = 640, H = 320, padL = 46, padB = 34, padT = 26, padR = 12;
+  var iw = W - padL - padR, ih = H - padT - padB, maxP = Math.max.apply(null, pcts) * 1.1;
+  ctx.fillStyle = "#103E32"; ctx.font = "bold 14px sans-serif"; ctx.fillText(title, padL, 17);
+  ctx.strokeStyle = "#B9C8BC"; ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ih); ctx.lineTo(padL + iw, padT + ih); ctx.stroke();
+  var slot = iw / pcts.length;
+  ctx.font = "11px sans-serif";
+  pcts.forEach(function(p, i){
+    var bh = ih * p / maxP, x = padL + slot * i + slot * 0.2, w = slot * 0.6;
+    ctx.fillStyle = "#2E7D5B"; ctx.fillRect(x, padT + ih - bh, w, bh);
+    ctx.fillStyle = "#17352B"; ctx.fillText(fmt(p, 1) + "%", x, padT + ih - bh - 5);
+    ctx.fillText("C" + (i + 1), x + w / 2 - 8, H - 12);
+  });
+}
+</script>
+
+<script>
+"use strict";
+/* ================= RUNNERS ================= */
+function runDescriptive(){
+  var idxs = checkedIdx("ck-desc");
+  if (!idxs.length) return errMsg("Select at least one numeric variable.");
+  var rows = idxs.map(function(i){
+    var d = describe(colNumbers(DS, i));
+    return [esc(DS.cols[i].name), d.n, fmt(d.mean), fmt(d.median), d.mode === null ? "—" : fmt(d.mode), fmt(d.sd),
+      fmt(d.variance), fmt(d.min), fmt(d.q1), fmt(d.q3), fmt(d.max), fmt(d.iqr), fmt(d.skew, 2), fmt(d.kurtosis, 2),
+      fmt(d.ciLo), fmt(d.ciHi)];
+  });
+  var html = "<h3>Descriptive statistics</h3>" + tableHtml(
+    ["Variable", "n", "Mean", "Median", "Mode", "SD", "Variance", "Min", "Q1", "Q3", "Max", "IQR", "Skewness", "Kurtosis", "95% CI ↓", "95% CI ↑"], rows, 1);
+  var first = describe(colNumbers(DS, idxs[0]));
+  html += interp("Reading the table: the <b>mean</b> is the average, the <b>median</b> the middle value, and the <b>SD</b> the typical distance from the mean. " +
+    "For <b>" + esc(DS.cols[idxs[0]].name) + "</b>: mean " + fmt(first.mean) + ", median " + fmt(first.median) + " — " +
+    (Math.abs(first.skew) < 0.5 ? "the distribution is roughly symmetric (skewness " + fmt(first.skew, 2) + ")." :
+      "the distribution is " + (first.skew > 0 ? "right-skewed" : "left-skewed") + " (skewness " + fmt(first.skew, 2) + "), so the median describes its centre better than the mean.") +
+    " The 95% confidence interval for the mean is [" + fmt(first.ciLo) + ", " + fmt(first.ciHi) + "].");
+  var vals = colNumbers(DS, idxs[0]), name0 = DS.cols[idxs[0]].name;
+  showResult(html, function(){ drawHistogram(vals, "Histogram — " + name0); });
+}
+function runTTest(){
+  var mode = $("tt-mode").value, v1 = parseInt($("tt-var1").value, 10);
+  if (mode === "one"){
+    var mu = Number($("tt-mu").value);
+    if (!isFinite(mu)) return errMsg("Enter a numeric test value (μ₀).");
+    var a = colNumbers(DS, v1);
+    if (a.length < 2) return errMsg("The one-sample t-test needs at least 2 values.");
+    var r = tTestOne(a, mu);
+    var html = "<h3>One-sample t-test — " + esc(DS.cols[v1].name) + " vs μ₀ = " + fmt(mu) + "</h3>" +
+      tableHtml(["n", "Mean", "SD", "Mean − μ₀", "t", "df", "p (two-sided)", "95% CI of difference"],
+        [[r.n, fmt(r.mean), fmt(r.sd), fmt(r.diff), fmt(r.t, 3), r.df, fmtP(r.p) + sigStars(r.p), fmt(r.ciLo) + " to " + fmt(r.ciHi)]], 0);
+    html += interp("The mean of <b>" + esc(DS.cols[v1].name) + "</b> (" + fmt(r.mean) + ") is " + sigWord(r.p) +
+      " different from " + fmt(mu) + " (t(" + r.df + ") = " + fmt(r.t, 2) + ", p = " + fmtP(r.p) + ").");
+    showResult(html, function(){ drawHistogram(a, "Histogram — " + DS.cols[v1].name); });
+  }
+  else if (mode === "ind"){
+    if (!catCols().length) return errMsg("The independent t-test needs a categorical grouping column with exactly 2 groups.");
+    var gIdx = parseInt($("tt-group").value, 10);
+    var groups = groupsFrom(gIdx, v1);
+    if (groups.length !== 2) return errMsg("The grouping column must have exactly 2 categories — “" + esc(DS.cols[gIdx].name) + "” has " + groups.length + ". Use ANOVA for 3 or more groups.");
+    if (groups[0].values.length < 2 || groups[1].values.length < 2) return errMsg("Each group needs at least 2 values.");
+    var pooled = $("tt-pool").value === "pooled";
+    var r2 = tTestInd(groups[0].values, groups[1].values, pooled);
+    var html2 = "<h3>Independent samples t-test (" + (pooled ? "pooled" : "Welch") + ") — " + esc(DS.cols[v1].name) + " by " + esc(DS.cols[gIdx].name) + "</h3>" +
+      tableHtml(["Group", "n", "Mean", "SD"], groups.map(function(g){ var d = describe(g.values); return [esc(g.name), d.n, fmt(d.mean), fmt(d.sd)]; }), 1) +
+      tableHtml(["Mean difference", "SE", "t", "df", "p (two-sided)", "95% CI", "Cohen's d"],
+        [[fmt(r2.diff), fmt(r2.se), fmt(r2.t, 3), fmt(r2.df, 1), fmtP(r2.p) + sigStars(r2.p), fmt(r2.ciLo) + " to " + fmt(r2.ciHi), fmt(r2.cohensD, 2)]], 0);
+    html2 += interp("<b>" + esc(groups[0].name) + "</b> (M = " + fmt(r2.a.mean) + ") vs <b>" + esc(groups[1].name) + "</b> (M = " + fmt(r2.b.mean) +
+      "): the difference of " + fmt(Math.abs(r2.diff)) + " is " + sigWord(r2.p) + " (t = " + fmt(r2.t, 2) + ", p = " + fmtP(r2.p) +
+      "). Cohen's d = " + fmt(r2.cohensD, 2) + " indicates a <b>" + effectD(r2.cohensD) + "</b> effect.");
+    showResult(html2, function(){ drawBoxplot(groups, DS.cols[v1].name + " by " + DS.cols[gIdx].name); });
+  }
+  else {
+    var v2 = parseInt($("tt-var2").value, 10);
+    if (v2 === v1) return errMsg("Choose two different variables for the paired test.");
+    var pr = paired(DS, v1, v2);
+    if (pr.x.length < 2) return errMsg("The paired test needs at least 2 rows where both variables are present.");
+    var r3 = tTestPaired(pr.x, pr.y);
+    var html3 = "<h3>Paired samples t-test — " + esc(DS.cols[v1].name) + " vs " + esc(DS.cols[v2].name) + "</h3>" +
+      tableHtml(["Pairs", "Mean difference", "SD of differences", "t", "df", "p (two-sided)", "95% CI", "Cohen's d"],
+        [[r3.n, fmt(r3.meanDiff), fmt(r3.sdDiff), fmt(r3.t, 3), r3.df, fmtP(r3.p) + sigStars(r3.p), fmt(r3.ciLo) + " to " + fmt(r3.ciHi), fmt(r3.cohensD, 2)]], 0);
+    html3 += interp("Across " + r3.n + " pairs, <b>" + esc(DS.cols[v1].name) + "</b> differs from <b>" + esc(DS.cols[v2].name) +
+      "</b> by " + fmt(r3.meanDiff) + " on average — " + sigWord(r3.p) + " (p = " + fmtP(r3.p) + ", effect: <b>" + effectD(r3.cohensD) + "</b>).");
+    showResult(html3, function(){ drawHistogram(pr.x.map(function(v, i){ return v - pr.y[i]; }), "Histogram of differences"); });
+  }
+}
+function runAnova(){
+  if (!catCols().length) return errMsg("ANOVA needs a categorical grouping column.");
+  var v = parseInt($("an-var").value, 10), g = parseInt($("an-group").value, 10);
+  var groups = groupsFrom(g, v);
+  if (groups.length < 2) return errMsg("The grouping column needs at least 2 categories.");
+  if (groups.some(function(gr){ return gr.values.length < 2; })) return errMsg("Each group needs at least 2 values.");
+  var r = anovaOneWay(groups);
+  var html = "<h3>One-way ANOVA — " + esc(DS.cols[v].name) + " by " + esc(DS.cols[g].name) + "</h3>" +
+    tableHtml(["Group", "n", "Mean", "SD"], r.groups.map(function(gr){ return [esc(gr.name), gr.d.n, fmt(gr.d.mean), fmt(gr.d.sd)]; }), 1) +
+    tableHtml(["Source", "SS", "df", "MS", "F", "p", "η²"],
+      [["Between groups", fmt(r.ssb, 2), r.dfB, fmt(r.msb, 2), fmt(r.F, 3), fmtP(r.p) + sigStars(r.p), fmt(r.eta2, 3)],
+       ["Within groups", fmt(r.ssw, 2), r.dfW, fmt(r.msw, 2), "", "", ""],
+       ["Total", fmt(r.ssb + r.ssw, 2), r.N - 1, "", "", "", ""]], 1);
+  var means = r.groups.map(function(gr){ return gr.d.mean; });
+  var hi = r.groups[means.indexOf(Math.max.apply(null, means))], lo = r.groups[means.indexOf(Math.min.apply(null, means))];
+  html += interp("The group means differ overall — the result is " + sigWord(r.p) + " (F(" + r.dfB + ", " + r.dfW + ") = " + fmt(r.F, 2) + ", p = " + fmtP(r.p) +
+    "). η² = " + fmt(r.eta2, 2) + " means about " + fmt(100 * r.eta2, 0) + "% of the variation in <b>" + esc(DS.cols[v].name) + "</b> is associated with group membership. " +
+    "Highest: <b>" + esc(hi.name) + "</b> (M = " + fmt(hi.d.mean) + "); lowest: <b>" + esc(lo.name) + "</b> (M = " + fmt(lo.d.mean) + "). " +
+    (r.p < 0.05 ? "To find which specific pairs differ, run t-tests on the pairs of interest (with a stricter α, e.g. Bonferroni)." : ""));
+  showResult(html, function(){ drawBoxplot(groups, DS.cols[v].name + " by " + DS.cols[g].name); });
+}
+function runChisq(){
+  var a = parseInt($("ch-v1").value, 10), b = parseInt($("ch-v2").value, 10);
+  if (a === b) return errMsg("Choose two different categorical variables.");
+  var ra = levels(a), rb = levels(b);
+  if (ra.length < 2 || rb.length < 2) return errMsg("Each variable needs at least 2 categories.");
+  var table = ra.map(function(){ return rb.map(function(){ return 0; }); });
+  for (var r = 0; r < DS.n; r++){
+    var va = DS.cols[a].values[r], vb = DS.cols[b].values[r];
+    if (va !== null && vb !== null) table[ra.indexOf(va)][rb.indexOf(vb)]++;
+  }
+  var res = chiSquare(table);
+  var rows = table.map(function(row, i){
+    return [esc(String(ra[i]))].concat(row.map(String)).concat([String(row.reduce(function(s, x){ return s + x; }, 0))]);
+  });
+  var html = "<h3>Chi-square test of independence — " + esc(DS.cols[a].name) + " × " + esc(DS.cols[b].name) + "</h3>" +
+    tableHtml([""].concat(rb.map(String)).concat(["Row total"]), rows, 1) +
+    tableHtml(["χ²", "df", "p", "N", "Cramér's V"], [[fmt(res.chi2, 3), res.df, fmtP(res.p) + sigStars(res.p), res.N, fmt(res.cramersV, 3)]], 0);
+  html += interp("<b>" + esc(DS.cols[a].name) + "</b> and <b>" + esc(DS.cols[b].name) + "</b> are " +
+    (res.p < 0.05 ? "<b>significantly associated</b>" : "<b>not significantly associated</b>") +
+    " (χ²(" + res.df + ") = " + fmt(res.chi2, 2) + ", p = " + fmtP(res.p) + "). Cramér's V = " + fmt(res.cramersV, 2) +
+    " indicates a <b>" + effectR(res.cramersV) + "</b> association." +
+    (res.lowCellPct > 20 ? " ⚠ Caution: " + fmt(res.lowCellPct, 0) + "% of cells have expected counts below 5, so treat the p-value with care — consider combining small categories." : ""));
+  showResult(html, null);
+}
+function runCorr(){
+  var idxs = checkedIdx("ck-corr");
+  if (idxs.length < 2) return errMsg("Select at least 2 numeric variables.");
+  var method = $("co-method").value, fn = method === "spearman" ? spearman : pearson;
+  var rows = [], strongest = null;
+  idxs.forEach(function(i){
+    var row = [esc(DS.cols[i].name)];
+    idxs.forEach(function(j){
+      if (i === j){ row.push("1"); return; }
+      var pr = paired(DS, i, j), r = fn(pr.x, pr.y);
+      if (!r){ row.push("—"); return; }
+      row.push(fmt(r.r, 3) + sigStars(r.p));
+      if (!strongest || Math.abs(r.r) > Math.abs(strongest.r)) strongest = { a: DS.cols[i].name, b: DS.cols[j].name, r: r.r, p: r.p };
+    });
+    rows.push(row);
+  });
+  var html = "<h3>" + (method === "spearman" ? "Spearman" : "Pearson") + " correlation matrix</h3>" +
+    "<div class='tblwrap'><table class='data heatmap'><tr><th></th>" + idxs.map(function(i){ return "<th>" + esc(DS.cols[i].name) + "</th>"; }).join("") + "</tr>" +
+    rows.map(function(r){ return "<tr><td style='text-align:left;font-weight:600'>" + r[0] + "</td>" + r.slice(1).map(function(c){ return "<td>" + c + "</td>"; }).join("") + "</tr>"; }).join("") + "</table></div>" +
+    "<p class='sub'>* p &lt; .05 &nbsp; ** p &lt; .01 &nbsp; *** p &lt; .001 (two-sided, pairwise complete cases)</p>";
+  if (strongest) html += interp("Strongest relationship: <b>" + esc(strongest.a) + "</b> and <b>" + esc(strongest.b) + "</b> — r = " + fmt(strongest.r, 2) +
+    ", a <b>" + effectR(strongest.r) + "</b> " + (strongest.r >= 0 ? "positive" : "negative") + " association (p = " + fmtP(strongest.p) +
+    "). Remember: correlation shows association, not causation.");
+  var pr2 = paired(DS, idxs[0], idxs[1]);
+  var reg = ols(pr2.y, [pr2.x], [DS.cols[idxs[0]].name]);
+  showResult(html, function(){
+    drawScatter(pr2.x, pr2.y, reg && !reg.error ? reg.coef[1].b : null, reg && !reg.error ? reg.coef[0].b : null, DS.cols[idxs[0]].name, DS.cols[idxs[1]].name);
+  });
+}
+function coefTable(res, showStd){
+  var headers = ["Term", "B", "SE", "β (standardised)", "t", "p"];
+  if (!showStd) headers = ["Term", "B", "SE", "t", "p"];
+  var rows = res.coef.map(function(c){
+    var base = [esc(c.name), fmt(c.b, 4), fmt(c.se, 4)];
+    if (showStd) base.push(c.name === "(Constant)" ? "—" : fmt(c.betaStd, 3));
+    base.push(fmt(c.t, 3), fmtP(c.p) + sigStars(c.p));
+    return base;
+  });
+  return tableHtml(headers, rows, 1);
+}
+function runRegression(){
+  var yI = parseInt($("rg-y").value, 10), xI = parseInt($("rg-x").value, 10);
+  if (yI === xI) return errMsg("Choose different variables for X and Y.");
+  var pr = paired(DS, xI, yI);
+  if (pr.x.length < 3) return errMsg("Regression needs at least 3 complete pairs.");
+  var res = ols(pr.y, [pr.x], [DS.cols[xI].name]);
+  if (res.error) return errMsg(res.error);
+  var slope = res.coef[1], inter = res.coef[0];
+  var html = "<h3>Linear regression — " + esc(DS.cols[yI].name) + " on " + esc(DS.cols[xI].name) + "</h3>" +
+    coefTable(res, true) +
+    tableHtml(["R²", "Adjusted R²", "F", "df", "p (model)", "Residual SE", "n"],
+      [[fmt(res.r2, 3), fmt(res.adjR2, 3), fmt(res.F, 2), res.dfModel + ", " + res.dfRes, fmtP(res.fp) + sigStars(res.fp), fmt(res.sigma, 3), res.n]], 0) +
+    "<p style='font-size:14.5px'><b>Fitted line:</b> " + esc(DS.cols[yI].name) + " = " + fmt(inter.b, 3) + " + " + fmt(slope.b, 3) + " × " + esc(DS.cols[xI].name) + "</p>";
+  html += interp("For each 1-unit increase in <b>" + esc(DS.cols[xI].name) + "</b>, <b>" + esc(DS.cols[yI].name) + "</b> changes by " + fmt(slope.b, 3) +
+    " units on average — " + sigWord(slope.p) + " (p = " + fmtP(slope.p) + "). The model explains " + fmt(100 * res.r2, 1) + "% of the variation in " +
+    esc(DS.cols[yI].name) + " (R² = " + fmt(res.r2, 2) + ").");
+  var xs = pr.x, ys = pr.y;
+  showResult(html, function(){ drawScatter(xs, ys, slope.b, inter.b, DS.cols[xI].name, DS.cols[yI].name); });
+}
+function runMultiReg(){
+  var yI = parseInt($("mr-y").value, 10);
+  var xIdx = checkedIdx("ck-mr").filter(function(i){ return i !== yI; });
+  if (!xIdx.length) return errMsg("Select at least one predictor (different from the outcome).");
+  var all = [yI].concat(xIdx), cc = completeCols(all);
+  if (cc.n <= xIdx.length + 1) return errMsg("Not enough complete rows (" + cc.n + ") for " + xIdx.length + " predictor(s). Check for missing values.");
+  var y = cc.cols[0], X = cc.cols.slice(1);
+  var res = ols(y, X, cc.names.slice(1));
+  if (res.error) return errMsg(res.error);
+  var html = "<h3>Multiple regression — " + esc(DS.cols[yI].name) + " on " + cc.names.slice(1).map(esc).join(", ") + "</h3>" +
+    coefTable(res, true) +
+    tableHtml(["R²", "Adjusted R²", "F", "df", "p (model)", "Residual SE", "n"],
+      [[fmt(res.r2, 3), fmt(res.adjR2, 3), fmt(res.F, 2), res.dfModel + ", " + res.dfRes, fmtP(res.fp) + sigStars(res.fp), fmt(res.sigma, 3), res.n]], 0);
+  var sig = res.coef.slice(1).filter(function(c){ return c.p < 0.05; });
+  html += interp("Together the predictors explain " + fmt(100 * res.r2, 1) + "% of the variation in <b>" + esc(DS.cols[yI].name) + "</b> (adjusted R² = " + fmt(res.adjR2, 2) +
+    "); the overall model is " + sigWord(res.fp) + " (p = " + fmtP(res.fp) + "). " +
+    (sig.length ? "Holding the others constant, the significant predictor(s) are: " + sig.map(function(c){ return "<b>" + esc(c.name) + "</b> (B = " + fmt(c.b, 3) + ", p = " + fmtP(c.p) + ")"; }).join("; ") + "." :
+      "No individual predictor reaches significance with the others in the model.") +
+    " The β column compares predictors fairly: larger |β| = stronger unique association.");
+  showResult(html, null);
+}
+function multiComplete(idxs, minVars, label){
+  if (idxs.length < minVars) { errMsg(label); return null; }
+  var cc = completeCols(idxs);
+  if (cc.n < idxs.length + 2){ errMsg("Too few complete rows (" + cc.n + ") for " + idxs.length + " variables — check missing values."); return null; }
+  if (cc.cols.some(function(c){ return Math.sqrt(variance(c, true)) === 0; })){ errMsg("One of the selected variables is constant (no variation) — remove it."); return null; }
+  return cc;
+}
+function runPCA(){
+  var idxs = checkedIdx("ck-pca");
+  var cc = multiComplete(idxs, 2, "PCA needs at least 2 numeric variables (3 or more recommended).");
+  if (!cc) return;
+  var res = pca(cc.cols, cc.names);
+  var varRows = res.components.map(function(c, i){ return ["PC" + (i + 1), fmt(c.eigenvalue, 3), fmt(c.pct, 1) + "%", fmt(c.cumPct, 1) + "%"]; });
+  var loadRows = cc.names.map(function(n, v){
+    return [esc(n)].concat(res.components.map(function(c){ return fmt(c.loadings[v], 3); }));
+  });
+  var html = "<h3>Principal Component Analysis (correlation-based, n = " + cc.n + ")</h3>" +
+    tableHtml(["Component", "Eigenvalue", "% of variance", "Cumulative %"], varRows, 1) +
+    "<h3>Component loadings</h3>" + tableHtml(["Variable"].concat(res.components.map(function(_, i){ return "PC" + (i + 1); })), loadRows, 1);
+  var kaiser = res.components.filter(function(c){ return c.eigenvalue > 1; }).length;
+  html += interp("The first component alone captures " + fmt(res.components[0].pct, 1) + "% of the total variation. By the Kaiser rule (eigenvalue &gt; 1), " +
+    "<b>" + kaiser + " component(s)</b> are worth keeping; together they explain " + fmt(res.components.slice(0, kaiser).reduce(function(s, c){ return s + c.pct; }, 0), 1) +
+    "% of the variance. In the loadings table, variables with large values (positive or negative) on a component define what that component represents.");
+  var pcts = res.components.map(function(c){ return c.pct; });
+  showResult(html, function(){ drawScree(pcts, "Scree — % variance per component"); });
+}
+function runFactor(){
+  var idxs = checkedIdx("ck-fa");
+  var cc = multiComplete(idxs, 3, "Factor analysis needs at least 3 numeric variables.");
+  if (!cc) return;
+  var nf = Math.max(1, Math.min(6, parseInt($("fa-nf").value, 10) || 2));
+  if (nf >= idxs.length){ errMsg("Number of factors must be smaller than the number of variables."); return; }
+  var res = factorAnalysis(cc.cols, cc.names, nf);
+  var rows = cc.names.map(function(n, v){
+    return [esc(n)].concat(res.loadings[v].map(function(x){ return fmt(x, 3); })).concat([fmt(res.communalities[v], 3)]);
+  });
+  var html = "<h3>Factor analysis — principal axis factoring, varimax rotation (n = " + cc.n + ")</h3>" +
+    tableHtml(["Variable"].concat(res.ssLoadings.map(function(_, i){ return "Factor " + (i + 1); })).concat(["Communality h²"]), rows, 1) +
+    "<p style='font-size:14px'><b>SS loadings:</b> " + res.ssLoadings.map(function(s){ return fmt(s, 2); }).join(" · ") +
+    " &nbsp;·&nbsp; <b>% of variance:</b> " + res.pct.map(function(p){ return fmt(p, 1) + "%"; }).join(" · ") + "</p>";
+  var top = [];
+  for (var f = 0; f < nf; f++){
+    var best = res.loadings.map(function(row, v){ return [Math.abs(row[f]), cc.names[v], row[f]]; }).sort(function(a, b){ return b[0] - a[0]; }).slice(0, 2);
+    top.push("Factor " + (f + 1) + " is defined mainly by " + best.map(function(b2){ return "<b>" + esc(b2[1]) + "</b> (" + fmt(b2[2], 2) + ")"; }).join(" and "));
+  }
+  html += interp(top.join(". ") + ". Variables with loadings above ≈0.4 on a factor are usually taken as belonging to it; a low communality (h²) means the factors explain little of that variable.");
+  showResult(html, null);
+}
+$("run").addEventListener("click", function(){
+  if (!DS) return;
+  showMsg($("anMsg"), "", "");
+  ({ visualize: runVisualize, descriptive: runDescriptive, ttest: runTTest, anova: runAnova, chisq: runChisq, corr: runCorr,
+     regression: runRegression, multireg: runMultiReg, pca: runPCA, factor: runFactor })[currentAn]();
+});
+
+/* ---------- Report download ---------- */
+$("dlReport").addEventListener("click", function(){
+  var node = $("result").cloneNode(true);
+  var srcCanvases = $("result").querySelectorAll("canvas");
+  var cloneCanvases = node.querySelectorAll("canvas");
+  srcCanvases.forEach(function(cv, i){
+    var img = document.createElement("img");
+    img.src = cv.toDataURL("image/png"); img.style.maxWidth = "100%";
+    cloneCanvases[i].replaceWith(img);
+  });
+  var html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Statistical Visualization Report</title><style>" +
+    "body{font-family:Segoe UI,Arial,sans-serif;color:#17352B;max-width:900px;margin:24px auto;padding:0 16px}" +
+    "table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px}th{background:#103E32;color:#fff;text-align:left;padding:6px 8px}" +
+    "td{border-bottom:1px solid #DCE5D8;padding:5px 8px}.interp{background:#F0F5E9;border-left:4px solid #0B4F3A;padding:10px 12px}" +
+    "h1{color:#103E32;font-size:20px}h3{color:#103E32}</style></head><body>" +
+    "<h1>Statistical Visualization Report</h1><p>Generated by Statistical Data Visualization v1.0 · Asif SaaS Studio · " +
+    new Date().toLocaleDateString() + " · Dataset: " + (DS ? DS.n + " rows × " + DS.names.length + " columns" : "—") + "</p>" +
+    node.innerHTML + "</body></html>";
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+  a.download = "statistical-visualization-report.html";
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+});
+</script>
+
+<script>
+"use strict";
+/* ================= VISUALIZATION ADDITIONS ================= */
+/* ---------- XLSX reader (ZIP + sheet XML; first worksheet) ---------- */
+async function extractZipEntry(u8, dv, entries, name){
+  var e = entries[name]; if (!e) return null;
+  var lo = e.lhofs;
+  var nlen = dv.getUint16(lo + 26, true), elen = dv.getUint16(lo + 28, true);
+  var start = lo + 30 + nlen + elen;
+  var comp = u8.subarray(start, start + e.csize);
+  if (e.method === 0) return new TextDecoder().decode(comp);
+  if (e.method === 8){
+    if (typeof DecompressionStream === "undefined")
+      throw new Error("This browser cannot unpack XLSX files. Please use a current Chrome, Edge, Firefox or Safari — or save the sheet as CSV.");
+    var stream = new Blob([comp]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+    var ab = await new Response(stream).arrayBuffer();
+    return new TextDecoder().decode(ab);
+  }
+  throw new Error("Unsupported compression inside the XLSX file.");
+}
+async function parseXlsx(buf){
+  var u8 = new Uint8Array(buf), dv = new DataView(buf);
+  if (u8.length > 4 && u8[0] === 0xD0 && u8[1] === 0xCF)
+    throw new Error("That is a legacy .xls (binary) file. Open it in Excel and choose Save As → XLSX (or CSV), then upload again.");
+  var eocd = -1;
+  for (var i = u8.length - 22; i >= Math.max(0, u8.length - 66000); i--)
+    if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  if (eocd < 0) throw new Error("Not a valid XLSX file (its zip index was not found).");
+  var count = dv.getUint16(eocd + 10, true), off = dv.getUint32(eocd + 16, true), entries = {};
+  for (var n = 0; n < count; n++){
+    if (dv.getUint32(off, true) !== 0x02014b50) break;
+    var nlen = dv.getUint16(off + 28, true), elen = dv.getUint16(off + 30, true), clen = dv.getUint16(off + 32, true);
+    var name = new TextDecoder().decode(u8.subarray(off + 46, off + 46 + nlen));
+    entries[name] = { method: dv.getUint16(off + 10, true), csize: dv.getUint32(off + 20, true), lhofs: dv.getUint32(off + 42, true) };
+    off += 46 + nlen + elen + clen;
+  }
+  var ssXml = await extractZipEntry(u8, dv, entries, "xl/sharedStrings.xml"), shared = [];
+  if (ssXml){
+    var sis = ssXml.match(/<si>[\s\S]*?<\/si>/g) || [];
+    shared = sis.map(function(si){
+      var ts = si.match(/<t[^>]*>([\s\S]*?)<\/t>/g) || [];
+      return ts.map(function(t){ return t.replace(/<[^>]+>/g, ""); }).join("")
+        .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
+    });
+  }
+  var sheetName = Object.keys(entries).filter(function(k){ return /^xl\/worksheets\/sheet\d+\.xml$/.test(k); }).sort()[0];
+  if (!sheetName) throw new Error("No worksheet was found in this XLSX file.");
+  var shXml = await extractZipEntry(u8, dv, entries, sheetName);
+  var rowMatches = shXml.match(/<row[^>]*>[\s\S]*?<\/row>/g) || [];
+  var grid = rowMatches.map(function(rowXml){
+    var row = [], cellRe = /<c\s[^>]*?(?:\/>|>([\s\S]*?)<\/c>)/g, cm;
+    while ((cm = cellRe.exec(rowXml)) !== null){
+      var tag = cm[0], inner = cm[1] || "";
+      var refM = tag.match(/r="([A-Z]+)\d+"/), colIdx = 0;
+      if (refM){ for (var ci = 0; ci < refM[1].length; ci++) colIdx = colIdx * 26 + (refM[1].charCodeAt(ci) - 64); colIdx -= 1; }
+      else colIdx = row.length;
+      while (row.length < colIdx) row.push("");
+      var tM = tag.match(/t="(\w+)"/), type = tM ? tM[1] : "n", val = "";
+      if (type === "inlineStr"){
+        var it = inner.match(/<t[^>]*>([\s\S]*?)<\/t>/);
+        val = it ? it[1] : "";
+      } else if (type === "s"){
+        var sv = inner.match(/<v>([\s\S]*?)<\/v>/);
+        val = sv ? (shared[parseInt(sv[1], 10)] || "") : "";
+      } else if (type === "str"){
+        var fv = inner.match(/<v>([\s\S]*?)<\/v>/);
+        val = fv ? fv[1] : "";
+      } else {
+        var nv = inner.match(/<v>([\s\S]*?)<\/v>/);
+        val = nv ? nv[1] : "";
+      }
+      row.push(String(val).replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&"));
+    }
+    return row;
+  });
+  if (!grid.length) throw new Error("The first worksheet appears to be empty.");
+  return grid;
+}
+/* Whitespace-delimited grid (typical .dat files) */
+function parseWhitespace(text){
+  return text.split(/\r\n|\r|\n/).filter(function(l){ return l.trim() !== ""; })
+    .map(function(l){ return l.trim().split(/\s+/); });
+}
+function parseSmartGrid(text){
+  var t = text.trim();
+  if (t[0] === "[") return parseJsonData(t);
+  var firstLine = t.split(/\r\n|\r|\n/)[0] || "";
+  var delimChars = (firstLine.match(/[,;\t|]/g) || []).length;
+  if (delimChars === 0 && /\s+\S+\s+/.test(firstLine)) return parseWhitespace(t);
+  return parseDelimited(t, sniffDelimiter(t));
+}
+
+/* ---------- Extra maths: inverse normal + KDE ---------- */
+function normInv(p){
+  var a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+  var b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
+  var c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+  var d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
+  var plow = 0.02425, phigh = 1 - plow, q, r;
+  if (p < plow){ q = Math.sqrt(-2 * Math.log(p)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  if (p > phigh){ q = Math.sqrt(-2 * Math.log(1 - p)); return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  q = p - 0.5; r = q * q;
+  return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+function kde(values, points){
+  var d = describe(values), n = values.length;
+  var h = 0.9 * Math.min(d.sd, d.iqr / 1.34 || d.sd) * Math.pow(n, -0.2);
+  if (!(h > 0)) h = d.sd * 0.2 || 1;
+  return points.map(function(x){
+    var s = 0;
+    for (var i = 0; i < n; i++){ var u = (x - values[i]) / h; s += Math.exp(-0.5 * u * u); }
+    return s / (n * h * Math.sqrt(2 * Math.PI));
+  });
+}
+
+/* ---------- Extra charts ---------- */
+function chartTitle(ctx, padL, title){ ctx.fillStyle = "#103E32"; ctx.font = "bold 14px sans-serif"; ctx.fillText(title, padL, 17); }
+function drawDistribution(values, title, binsWanted){
+  var ctx = newCanvas(680, 380), W = 680, H = 380, padL = 48, padB = 36, padT = 28, padR = 14;
+  var d = describe(values), bins = binsWanted || Math.max(5, Math.min(18, Math.ceil(Math.sqrt(values.length))));
+  var lo = d.min, hi = d.max, bw = (hi - lo) / bins || 1, counts = new Array(bins).fill(0);
+  values.forEach(function(v){ counts[Math.min(bins - 1, Math.floor((v - lo) / bw))]++; });
+  var iw = W - padL - padR, ih = H - padT - padB;
+  var xs = []; for (var i = 0; i <= 60; i++) xs.push(lo - bw + (hi - lo + 2 * bw) * i / 60);
+  var dens = kde(values, xs), maxD = Math.max.apply(null, dens);
+  var maxCountScaled = Math.max.apply(null, counts) / (values.length * bw);
+  var top = Math.max(maxD, maxCountScaled) * 1.15;
+  function X(v){ return padL + iw * (v - (lo - bw)) / (hi - lo + 2 * bw); }
+  function Y(v){ return padT + ih - ih * v / top; }
+  chartTitle(ctx, padL, title);
+  ctx.strokeStyle = "#B9C8BC"; ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + ih); ctx.lineTo(padL + iw, padT + ih); ctx.stroke();
+  counts.forEach(function(c, i){
+    var hFrac = (c / (values.length * bw)) / top;
+    ctx.fillStyle = "rgba(46,125,91,.55)";
+    ctx.fillRect(X(lo + i * bw), padT + ih - ih * hFrac, iw / ((hi - lo + 2 * bw) / bw) - 2, ih * hFrac);
+  });
+  ctx.strokeStyle = "#C0392B"; ctx.lineWidth = 2.4; ctx.beginPath();
+  xs.forEach(function(x, i){ var px = X(x), py = Y(dens[i]); if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); });
+  ctx.stroke(); ctx.lineWidth = 1;
+  ctx.strokeStyle = "#103E32"; ctx.setLineDash([5, 4]); ctx.beginPath();
+  ctx.moveTo(X(d.mean), padT); ctx.lineTo(X(d.mean), padT + ih); ctx.stroke(); ctx.setLineDash([]);
+  ctx.font = "11px sans-serif"; ctx.fillStyle = "#5A6E64";
+  ctx.fillText("bars = histogram · red curve = density (KDE) · dashed = mean", padL, H - 20);
+  ctx.fillText(fmt(lo, 1), padL - 4, H - 4); ctx.fillText(fmt(hi, 1), padL + iw - 26, H - 4);
+}
+function drawPie(labels, counts, title){
+  var ctx = newCanvas(680, 380), W = 680, H = 380;
+  var total = counts.reduce(function(s, v){ return s + v; }, 0);
+  var colors = ["#0B4F3A", "#2E7D5B", "#C9A227", "#7FB069", "#E0A458", "#4E8098", "#9B5DE5", "#BC6C25", "#606C38", "#8ECAE6"];
+  chartTitle(ctx, 24, title);
+  var cx = 190, cy = 205, r = 130, ang = -Math.PI / 2;
+  counts.forEach(function(c, i){
+    var sweep = 2 * Math.PI * c / total;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, ang, ang + sweep); ctx.closePath();
+    ctx.fillStyle = colors[i % colors.length]; ctx.fill();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke(); ctx.lineWidth = 1;
+    ang += sweep;
+  });
+  ctx.font = "13px sans-serif";
+  counts.forEach(function(c, i){
+    var y = 96 + i * 26;
+    ctx.fillStyle = colors[i % colors.length]; ctx.fillRect(370, y - 11, 14, 14);
+    ctx.fillStyle = "#17352B";
+    ctx.fillText(labels[i] + " — " + c + " (" + fmt(100 * c / total, 1) + "%)", 392, y + 1);
+  });
+}
+function drawLine(values, name){
+  var ctx = newCanvas(680, 340), W = 680, H = 340, padL = 48, padB = 32, padT = 28, padR = 14;
+  var lo = Math.min.apply(null, values), hi = Math.max.apply(null, values), pad = (hi - lo) * 0.07 || 1;
+  lo -= pad; hi += pad;
+  var iw = W - padL - padR, ih = H - padT - padB;
+  function X(i){ return padL + iw * i / (values.length - 1 || 1); }
+  function Y(v){ return padT + ih - ih * (v - lo) / (hi - lo); }
+  chartTitle(ctx, padL, "Line chart — " + name + " by row order");
+  ctx.strokeStyle = "#B9C8BC"; ctx.strokeRect(padL, padT, iw, ih);
+  ctx.strokeStyle = "#0B4F3A"; ctx.lineWidth = 2; ctx.beginPath();
+  values.forEach(function(v, i){ if (i === 0) ctx.moveTo(X(i), Y(v)); else ctx.lineTo(X(i), Y(v)); });
+  ctx.stroke(); ctx.lineWidth = 1; ctx.fillStyle = "#103E32";
+  values.forEach(function(v, i){ ctx.beginPath(); ctx.arc(X(i), Y(v), 2.6, 0, 7); ctx.fill(); });
+  ctx.font = "11px sans-serif"; ctx.fillStyle = "#5A6E64";
+  ctx.fillText(fmt(hi, 1), 8, padT + 10); ctx.fillText(fmt(lo, 1), 8, padT + ih);
+  ctx.fillText("row 1", padL, H - 8); ctx.fillText("row " + values.length, padL + iw - 40, H - 8);
+  var d = describe(values);
+  ctx.strokeStyle = "#C0392B"; ctx.setLineDash([5, 4]); ctx.beginPath();
+  ctx.moveTo(padL, Y(d.mean)); ctx.lineTo(padL + iw, Y(d.mean)); ctx.stroke(); ctx.setLineDash([]);
+}
+function drawQQ(values, name){
+  var ctx = newCanvas(680, 380), W = 680, H = 380, padL = 52, padB = 38, padT = 28, padR = 14;
+  var d = describe(values), sorted = d.sorted, n = sorted.length;
+  var iw = W - padL - padR, ih = H - padT - padB;
+  var z = sorted.map(function(_, i){ return normInv((i + 0.5) / n); });
+  var zlo = z[0], zhi = z[n - 1];
+  function X(v){ return padL + iw * (v - zlo) / (zhi - zlo || 1); }
+  function Y(v){ return padT + ih - ih * (v - d.min) / (d.max - d.min || 1); }
+  chartTitle(ctx, padL, "Normal Q–Q plot — " + name);
+  ctx.strokeStyle = "#B9C8BC"; ctx.strokeRect(padL, padT, iw, ih);
+  ctx.strokeStyle = "#C0392B"; ctx.lineWidth = 2; ctx.beginPath();
+  ctx.moveTo(X(zlo), Y(d.mean + zlo * d.sd)); ctx.lineTo(X(zhi), Y(d.mean + zhi * d.sd)); ctx.stroke(); ctx.lineWidth = 1;
+  ctx.fillStyle = "#103E32";
+  sorted.forEach(function(v, i){ ctx.beginPath(); ctx.arc(X(z[i]), Y(v), 3.2, 0, 7); ctx.fill(); });
+  ctx.font = "11px sans-serif"; ctx.fillStyle = "#5A6E64";
+  ctx.fillText("theoretical normal quantiles →", padL + iw / 2 - 70, H - 8);
+  ctx.fillText("points on the red line ≈ normal distribution", padL, H - 22);
+}
+function drawCorrHeat(idxs){
+  var cc = completeCols(idxs);
+  var R = corrMatrix(cc.cols), p = idxs.length;
+  var cell = Math.min(86, Math.floor(560 / p)), W = 90 + cell * p + 20, H = 70 + cell * p + 30;
+  var ctx = newCanvas(W, H);
+  chartTitle(ctx, 12, "Correlation heatmap (Pearson, complete cases n = " + cc.n + ")");
+  ctx.font = "bold 12px sans-serif";
+  for (var i = 0; i < p; i++) for (var j = 0; j < p; j++){
+    var r = R[i][j], x = 90 + j * cell, y = 44 + i * cell;
+    var g = Math.round(240 - Math.abs(r) * 150), red = r >= 0 ? 240 : Math.round(240 - Math.abs(r) * 40);
+    ctx.fillStyle = r >= 0 ? "rgb(" + g + "," + Math.round(245 - Math.abs(r) * 60) + "," + g + ")" : "rgb(" + Math.round(245 - Math.abs(r) * 30) + "," + g + "," + g + ")";
+    if (r < 0) ctx.fillStyle = "rgb(246," + Math.round(235 - Math.abs(r) * 140) + "," + Math.round(235 - Math.abs(r) * 140) + ")";
+    if (r >= 0) ctx.fillStyle = "rgb(" + Math.round(240 - Math.abs(r) * 160) + ",246," + Math.round(240 - Math.abs(r) * 160) + ")";
+    ctx.fillRect(x, y, cell - 3, cell - 3);
+    ctx.fillStyle = "#17352B"; ctx.font = "bold 12px sans-serif";
+    ctx.fillText(fmt(r, 2), x + cell / 2 - 14, y + cell / 2 + 4);
+  }
+  ctx.fillStyle = "#17352B"; ctx.font = "11.5px sans-serif";
+  for (var k = 0; k < p; k++){
+    var nm = cc.names[k].length > 12 ? cc.names[k].slice(0, 11) + "…" : cc.names[k];
+    ctx.fillText(nm, 90 + k * cell + 2, 38);
+    ctx.save(); ctx.translate(84, 44 + k * cell + cell / 2); ctx.rotate(-0); ctx.fillText(nm, -ctx.measureText(nm).width, 4); ctx.restore();
+  }
+  ctx.fillText("green = positive · red = negative · darker = stronger", 90, H - 8);
+}
+function drawBiplot(idxs){
+  var cc = completeCols(idxs);
+  var res = pca(cc.cols, cc.names);
+  var ev = res.components;
+  if (ev.length < 2) { errMsg("A biplot needs at least 2 components."); return false; }
+  // standardise + project scores onto PC1/PC2
+  var p = cc.cols.length, means = cc.cols.map(mean), sds = cc.cols.map(function(c){ return Math.sqrt(variance(c, true)); });
+  var vecs = [0, 1].map(function(ci){
+    var evv = Math.max(ev[ci].eigenvalue, 1e-9);
+    return ev[ci].loadings.map(function(l){ return l / Math.sqrt(evv); });
+  });
+  var scores = [];
+  for (var r = 0; r < cc.n; r++){
+    var s = [0, 0];
+    for (var c = 0; c < p; c++){ var zv = sds[c] > 0 ? (cc.cols[c][r] - means[c]) / sds[c] : 0; s[0] += zv * vecs[0][c]; s[1] += zv * vecs[1][c]; }
+    scores.push(s);
+  }
+  var ctx = newCanvas(680, 420), W = 680, H = 420, padL = 52, padB = 36, padT = 28, padR = 16;
+  var iw = W - padL - padR, ih = H - padT - padB;
+  var xs = scores.map(function(s){ return s[0]; }), ys = scores.map(function(s){ return s[1]; });
+  var xlo = Math.min.apply(null, xs), xhi = Math.max.apply(null, xs), ylo = Math.min.apply(null, ys), yhi = Math.max.apply(null, ys);
+  var maxLoad = 0; ev[0].loadings.forEach(function(l, i){ maxLoad = Math.max(maxLoad, Math.hypot(ev[0].loadings[i], ev[1].loadings[i])); });
+  var span = Math.max(xhi - xlo, yhi - ylo, maxLoad * 2.4) || 1;
+  var cx0 = (xlo + xhi) / 2, cy0 = (ylo + yhi) / 2;
+  function X(v){ return padL + iw * (v - (cx0 - span / 2)) / span; }
+  function Y(v){ return padT + ih - ih * (v - (cy0 - span / 2)) / span; }
+  chartTitle(ctx, padL, "PCA biplot — PC1 (" + fmt(ev[0].pct, 1) + "%) × PC2 (" + fmt(ev[1].pct, 1) + "%)");
+  ctx.strokeStyle = "#B9C8BC"; ctx.strokeRect(padL, padT, iw, ih);
+  ctx.strokeStyle = "#DCE5D8"; ctx.beginPath(); ctx.moveTo(X(0), padT); ctx.lineTo(X(0), padT + ih); ctx.moveTo(padL, Y(0)); ctx.lineTo(padL + iw, Y(0)); ctx.stroke();
+  ctx.fillStyle = "rgba(16,62,50,.55)";
+  scores.forEach(function(s){ ctx.beginPath(); ctx.arc(X(s[0]), Y(s[1]), 3, 0, 7); ctx.fill(); });
+  ctx.font = "bold 11.5px sans-serif";
+  for (var v = 0; v < p; v++){
+    var lx = ev[0].loadings[v] * (span / (2.4 * (maxLoad || 1))) * 1.9, ly = ev[1].loadings[v] * (span / (2.4 * (maxLoad || 1))) * 1.9;
+    ctx.strokeStyle = "#C0392B"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(lx), Y(ly)); ctx.stroke(); ctx.lineWidth = 1;
+    ctx.fillStyle = "#C0392B"; ctx.fillText(cc.names[v], X(lx) + 4, Y(ly) + 3);
+  }
+  return res;
+}
+
+/* ---------- Visualize tab ---------- */
+function vizPickersHtml(){
+  var t = $("viz-type").value, nc = numCols(), cc = catCols(), h = "";
+  if (t === "dist") h = "<label>Numeric variable</label>" + sel("viz-v1", nc, nc[0]) +
+    "<div class='row'><label>Histogram bins: <span id='viz-bins-val'>12</span></label><input type='range' id='viz-bins' min='5' max='30' value='12' style='max-width:420px;width:100%'></div>";
+  else if (t === "box") h = "<label>Numeric variable</label>" + sel("viz-v1", nc, nc[0]) +
+    (cc.length ? "<div class='row'><label>Group by (optional)</label><select id='viz-g'><option value='-1'>— no grouping —</option>" + cc.map(function(i){ return "<option value='" + i + "'>" + esc(DS.cols[i].name) + "</option>"; }).join("") + "</select></div>" : "");
+  else if (t === "scatter") h = "<label>X variable</label>" + sel("viz-v1", nc, nc[0]) + "<div class='row'><label>Y variable</label>" + sel("viz-v2", nc, nc[1] !== undefined ? nc[1] : nc[0]) + "</div>";
+  else if (t === "line") h = "<label>Numeric variable (plotted in row order)</label>" + sel("viz-v1", nc, nc[0]);
+  else if (t === "pie") h = cc.length ? "<label>Categorical variable</label>" + sel("viz-v1", cc, cc[0]) : "<p class='sub'>This dataset has no categorical column for a pie chart.</p>";
+  else if (t === "qq") h = "<label>Numeric variable</label>" + sel("viz-v1", nc, nc[0]);
+  else if (t === "heat") h = "<label>Numeric variables (2 or more)</label>" + checks("ck-vizheat", nc, true);
+  else if (t === "biplot") h = "<label>Numeric variables (3 or more recommended)</label>" + checks("ck-vizbi", nc, true);
+  return h;
+}
+function renderVizPickers(){
+  var box = $("vizPickers"); if (!box) return;
+  box.innerHTML = vizPickersHtml();
+  var bins = $("viz-bins");
+  if (bins) bins.addEventListener("input", function(){ $("viz-bins-val").textContent = this.value; });
+}
+function runVisualize(){
+  var t = $("viz-type").value, nc = numCols();
+  if (!nc.length && t !== "pie") return errMsg("This chart needs numeric columns, but the dataset has none.");
+  if (t === "dist"){
+    var v = parseInt($("viz-v1").value, 10), vals = colNumbers(DS, v), bins = parseInt(($("viz-bins") || {}).value || "12", 10);
+    var d = describe(vals);
+    var html = "<h3>Distribution — " + esc(DS.cols[v].name) + "</h3>" +
+      tableHtml(["n", "Mean", "Median", "SD", "Skewness", "Kurtosis", "Min", "Max"],
+        [[d.n, fmt(d.mean), fmt(d.median), fmt(d.sd), fmt(d.skew, 2), fmt(d.kurtosis, 2), fmt(d.min), fmt(d.max)]], 0) +
+      interp("Shape: <b>" + (Math.abs(d.skew) < 0.5 ? "roughly symmetric" : d.skew > 0 ? "right-skewed (long tail of high values)" : "left-skewed (long tail of low values)") +
+        "</b> (skewness " + fmt(d.skew, 2) + "). The density curve smooths the histogram; a single smooth hump close to the dashed mean line suggests a well-behaved, near-normal variable.");
+    var vv = vals, nm = DS.cols[v].name;
+    showResult(html, function(){ drawDistribution(vv, "Distribution — " + nm, bins); });
+  }
+  else if (t === "box"){
+    var v2 = parseInt($("viz-v1").value, 10), gSel = $("viz-g");
+    if (gSel && gSel.value !== "-1"){
+      var groups = groupsFrom(parseInt(gSel.value, 10), v2);
+      var html2 = "<h3>Box plot — " + esc(DS.cols[v2].name) + " by group</h3>" +
+        tableHtml(["Group", "n", "Mean", "Median", "SD", "IQR"], groups.map(function(g){ var dd = describe(g.values); return [esc(g.name), dd.n, fmt(dd.mean), fmt(dd.median), fmt(dd.sd), fmt(dd.iqr)]; }), 1) +
+        interp("Each box spans the middle 50% of its group (Q1–Q3); the line inside is the median and the whiskers reach the extremes. Boxes that barely overlap signal group differences worth testing with ANOVA or a t-test.");
+      showResult(html2, function(){ drawBoxplot(groups, DS.cols[v2].name + " by group"); });
+    } else {
+      var vals2 = colNumbers(DS, v2), one = [{ name: DS.cols[v2].name, values: vals2 }];
+      var d2 = describe(vals2);
+      var html3 = "<h3>Box plot — " + esc(DS.cols[v2].name) + "</h3>" +
+        interp("Median " + fmt(d2.median) + ", middle 50% between " + fmt(d2.q1) + " and " + fmt(d2.q3) + " (IQR " + fmt(d2.iqr) + "). A median line off-centre inside the box, or one whisker much longer than the other, shows skew.");
+      showResult(html3, function(){ drawBoxplot(one, DS.cols[v2].name); });
+    }
+  }
+  else if (t === "scatter"){
+    var xI = parseInt($("viz-v1").value, 10), yI = parseInt($("viz-v2").value, 10);
+    if (xI === yI) return errMsg("Choose two different variables for a scatter plot.");
+    var pr = paired(DS, xI, yI), r = pearson(pr.x, pr.y);
+    var reg = ols(pr.y, [pr.x], [DS.cols[xI].name]);
+    var html4 = "<h3>Scatter — " + esc(DS.cols[yI].name) + " vs " + esc(DS.cols[xI].name) + "</h3>" +
+      (r ? interp("Pearson r = <b>" + fmt(r.r, 3) + "</b> — a <b>" + effectR(r.r) + "</b> " + (r.r >= 0 ? "positive" : "negative") +
+        " linear association (p = " + fmtP(r.p) + ", n = " + r.n + "). The red line is the least-squares fit. Look for curvature (a curved pattern means a line is the wrong model) and for single points far from the cloud (outliers that drag the line).") : interp("The correlation could not be computed (a variable may be constant)."));
+    showResult(html4, function(){ drawScatter(pr.x, pr.y, reg && !reg.error ? reg.coef[1].b : null, reg && !reg.error ? reg.coef[0].b : null, DS.cols[xI].name, DS.cols[yI].name); });
+  }
+  else if (t === "line"){
+    var v3 = parseInt($("viz-v1").value, 10), vals3 = colNumbers(DS, v3);
+    var html5 = "<h3>Line chart — " + esc(DS.cols[v3].name) + "</h3>" +
+      interp("Values in row order (dashed line = mean " + fmt(mean(vals3)) + "). Rising/falling stretches show trends; sudden jumps flag data-entry errors or real events in sequence. Best when rows are in time or sequence order.");
+    showResult(html5, function(){ drawLine(vals3, DS.cols[v3].name); });
+  }
+  else if (t === "pie"){
+    if (!catCols().length) return errMsg("A pie chart needs a categorical column.");
+    var v4 = parseInt($("viz-v1").value, 10), lv = levels(v4);
+    var counts = lv.map(function(L){ return DS.cols[v4].values.filter(function(x){ return x === L; }).length; });
+    var order = counts.map(function(c, i){ return i; }).sort(function(a, b){ return counts[b] - counts[a]; });
+    var labels = order.map(function(i){ return String(lv[i]); }), cs = order.map(function(i){ return counts[i]; });
+    if (labels.length > 10){ var rest = cs.slice(9).reduce(function(s, x){ return s + x; }, 0); labels = labels.slice(0, 9).concat(["Other (" + (labels.length - 9) + " categories)"]); cs = cs.slice(0, 9).concat([rest]); }
+    var html6 = "<h3>Composition — " + esc(DS.cols[v4].name) + "</h3>" +
+      interp("Largest group: <b>" + esc(labels[0]) + "</b> with " + cs[0] + " of " + cs.reduce(function(s, x){ return s + x; }, 0) + " records (" + fmt(100 * cs[0] / cs.reduce(function(s, x){ return s + x; }, 0), 1) + "%). Pie charts suit a handful of groups; past ten categories the tail is grouped as “Other”.");
+    showResult(html6, function(){ drawPie(labels, cs, "Composition — " + DS.cols[v4].name); });
+  }
+  else if (t === "qq"){
+    var v5 = parseInt($("viz-v1").value, 10), vals5 = colNumbers(DS, v5), d5 = describe(vals5);
+    var html7 = "<h3>Normal Q–Q plot — " + esc(DS.cols[v5].name) + "</h3>" +
+      interp("Points hugging the red line = the variable is close to <b>normally distributed</b>. Systematic S-curves mean skew or heavy tails (skewness here: " + fmt(d5.skew, 2) +
+        "). Many tests (t-tests, ANOVA, regression) assume approximate normality — this plot is how you check with your eyes.");
+    showResult(html7, function(){ drawQQ(vals5, DS.cols[v5].name); });
+  }
+  else if (t === "heat"){
+    var idxs = checkedIdx("ck-vizheat");
+    if (idxs.length < 2) return errMsg("Select at least 2 numeric variables for the heatmap.");
+    var html8 = "<h3>Correlation heatmap</h3>" + interp("Every pair's Pearson correlation at a glance: green cells are positive, red cells negative, and darker means stronger. Scan for dark off-diagonal cells — those are your interesting relationships — and for two variables correlated near ±1, which are near-duplicates.");
+    showResult(html8, function(){ drawCorrHeat(idxs); });
+  }
+  else if (t === "biplot"){
+    var idxs2 = checkedIdx("ck-vizbi");
+    if (idxs2.length < 2) return errMsg("Select at least 2 numeric variables (3+ recommended) for a biplot.");
+    var holder = { res: null };
+    var html9 = "<h3>PCA biplot</h3>";
+    showResult(html9, function(){
+      var res = drawBiplot(idxs2);
+      if (res){
+        $("result").insertAdjacentHTML("beforeend", interp("Dots are observations projected onto the first two principal components; red arrows are the variables. " +
+          "Arrows pointing the same way = positively correlated variables; opposite arrows = negative; right angles = unrelated. " +
+          "PC1 + PC2 together explain <b>" + fmt(res.components[0].pct + res.components[1].pct, 1) + "%</b> of the total variation — the higher that share, the more faithfully this flat picture represents the full data."));
+      }
+    });
+  }
+}
+/* PNG export hook: showResult calls window.__afterResult if present */
+window.__afterResult = function(){
+  var old = $("pngBtn"); if (old) old.remove();
+  var cv = $("result").querySelector("canvas");
+  var dl = $("dlReport"); if (!cv || !dl) return;
+  var b = document.createElement("button");
+  b.className = "btn ghost"; b.id = "pngBtn"; b.textContent = "⬇ Download chart (PNG)";
+  b.addEventListener("click", function(){
+    var c2 = $("result").querySelector("canvas"); if (!c2) return;
+    var a = document.createElement("a");
+    a.href = c2.toDataURL("image/png"); a.download = "chart.png"; a.click();
+  });
+  dl.parentNode.insertBefore(b, dl.nextSibling);
+};
+</script>
+
+</body>
+</html>
